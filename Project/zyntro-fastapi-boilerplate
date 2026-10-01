@@ -205,3 +205,344 @@ cp -r .github app tests .env.example .gitignore .pre-commit-config.yaml pyprojec
 ---
 
 Would you like me to help you **push this complete boilerplate to a new ZyntroAI repository** and configure branch protection + CI together? Just tell me the new repo name and I'll walk you through every step.
+
+รับทราบครับ! ⚡ ชุดสคริปต์ตั้งค่าเทอร์มินัล — เตรียมสภาพแวดล้อมให้พร้อมทำงานกับ ZyntroAI ทันที ครบทุกระบบครับ 🚀
+ 
+ 
+ 
+⚡ Terminal Setup Scripts — ZyntroAI
+ 
+📋 สิ่งที่จะติดตั้ง
+ 
+- ✅ Git + การตั้งค่าชื่ออีเมล
+- ✅ Python 3.12 + uv (จัดการแพ็กเกจเร็วมาก)
+- ✅ Node.js 20+ (pnpm หรือ npm)
+- ✅ Prisma + Docker (ถ้าต้องการ)
+- ✅ สคริปต์ช่วย:  git push ,  dev ,  deploy 
+- ✅ สี + คำสั่งลัดในเทอร์มินัล
+ 
+ 
+ 
+🖥️ สคริปต์ที่ 1 — ตรวจสอบระบบก่อนเริ่ม
+ 
+บันทึกเป็น  scripts/0-check-system.sh 
+ 
+bash  
+#!/bin/bash
+set -e
+
+echo "🧠 ZyntroAI — ตรวจสอบระบบ"
+echo "============================"
+
+check() {
+  if command -v $1 &> /dev/null; then
+    echo "✅ $2: $(($3 --version 2>/dev/null || echo "ติดตั้งแล้ว"))"
+  else
+    echo "❌ $2: ยังไม่ติดตั้ง"
+    MISSING+=("$1")
+  fi
+}
+
+MISSING=()
+
+check git "Git"
+check python3 "Python"
+check node "Node.js"
+check uv "uv"
+check pnpm "pnpm"
+check docker "Docker"
+
+echo "============================"
+if [ ${#MISSING[@]} -eq 0 ]; then
+  echo "🎉 ทุกอย่างพร้อมแล้ว!"
+else
+  echo "⚠️  ยังขาด: ${MISSING[*]}"
+  exit 1
+fi
+ 
+ 
+bash  
+chmod +x scripts/0-check-system.sh
+./scripts/0-check-system.sh
+ 
+ 
+ 
+ 
+🖥️ สคริปต์ที่ 2 — ติดตั้งเครื่องมือพื้นฐาน
+ 
+บันทึกเป็น  scripts/1-install-tools.sh 
+ 
+bash  
+#!/bin/bash
+set -e
+
+echo "🧠 ZyntroAI — ติดตั้งเครื่องมือ"
+echo "============================"
+
+# ====== ตรวจระบบ ======
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "🍎 macOS"
+  if ! command -v brew &> /dev/null; then
+    echo "ติดตั้ง Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+  brew install git python3 node pnpm
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "🐧 Linux"
+  sudo apt update && sudo apt install -y git python3 python3-pip nodejs
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
+else
+  echo "🪟 Windows — แนะนำใช้ WSL"
+  exit 1
+fi
+
+# ====== uv (จัดการ Python) ======
+if ! command -v uv &> /dev/null; then
+  echo "ติดตั้ง uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
+
+# ====== ตรวจสอบเวอร์ชัน ======
+echo ""
+echo "✅ ติดตั้งเสร็จ!"
+echo "Git: $(git --version)"
+echo "Python: $(python3 --version)"
+echo "Node: $(node --version)"
+echo "uv: $(uv --version)"
+ 
+ 
+bash  
+chmod +x scripts/1-install-tools.sh
+./scripts/1-install-tools.sh
+ 
+ 
+ 
+ 
+🖥️ สคริปต์ที่ 3 — ตั้งค่า Git & SSH
+ 
+บันทึกเป็น  scripts/2-setup-git.sh 
+ 
+bash  
+#!/bin/bash
+set -e
+
+echo "🧠 ตั้งค่า Git & GitHub"
+echo "============================"
+
+read -p "ชื่อของคุณ: " GIT_NAME
+read -p "อีเมล GitHub: " GIT_EMAIL
+
+git config --global user.name "$GIT_NAME"
+git config --global user.email "$GIT_EMAIL"
+git config --global init.defaultBranch "main"
+git config --global core.editor "nano"
+git config --global pull.rebase false
+
+echo ""
+echo "✅ ตั้งค่า Git เสร็จ:"
+git config --global --list | grep user
+
+# ====== SSH Key ======
+if [ ! -f ~/.ssh/id_ed25519 ]; then
+  echo ""
+  echo "🔐 สร้างคีย์ SSH..."
+  ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f ~/.ssh/id_ed25519 -N ""
+  echo "คัดลอกข้อความนี้ไปวางที่ GitHub → Settings → SSH and GPG keys:"
+  echo "-------------------------------------------------"
+  cat ~/.ssh/id_ed25519.pub
+  echo "-------------------------------------------------"
+else
+  echo "✅ มี SSH key อยู่แล้ว"
+fi
+ 
+ 
+bash  
+chmod +x scripts/2-setup-git.sh
+./scripts/2-setup-git.sh
+ 
+ 
+ 
+ 
+🖥️ สคริปต์ที่ 4 — โคลน & เตรียมโปรเจกต์
+ 
+บันทึกเป็น  scripts/3-init-project.sh 
+ 
+bash  
+#!/bin/bash
+set -e
+
+echo "🧠 เริ่มต้นโปรเจกต์ ZyntroAI"
+echo "============================"
+
+REPO_DIR="ZyntroAI-Project"
+
+# ====== โคลนหรือสร้าง ======
+if [ ! -d "$REPO_DIR" ]; then
+  echo "📥 ดึงโค้ด..."
+  git clone git@github.com:zyntromedia/ZyntroAI-Project.git "$REPO_DIR"
+  cd "$REPO_DIR"
+else
+  echo "📂 มีโฟลเดอร์แล้ว — ดึงข้อมูลล่าสุด"
+  cd "$REPO_DIR"
+  git pull origin main
+fi
+
+# ====== ตั้งค่าสภาพแวดล้อม ======
+if [ ! -f .env ]; then
+  echo "⚙️  คัดลอก .env..."
+  cp .env.example .env
+  echo "⚠️  กรุณาแก้ไข .env → ตั้งค่า DATABASE_URL และคีย์ต่างๆ"
+fi
+
+# ====== ติดตั้งแพ็กเกจ ======
+echo "📦 ติดตั้งแพ็กเกจ..."
+if [ -f pyproject.toml ]; then
+  uv sync --dev
+fi
+if [ -f package.json ]; then
+  npm install
+fi
+
+# ====== Prisma (ถ้ามี) ======
+if [ -d prisma ]; then
+  npx prisma generate
+fi
+
+echo ""
+echo "✅ พร้อมแล้ว! 🚀"
+echo "cd $REPO_DIR"
+echo "npm run dev"
+ 
+ 
+bash  
+chmod +x scripts/3-init-project.sh
+./scripts/3-init-project.sh
+ 
+ 
+ 
+ 
+🖥️ สคริปต์ที่ 5 — คำสั่งลัด & สีเทอร์มินัล
+ 
+บันทึกเป็น  scripts/4-terminal-config.sh 
+ 
+bash  
+#!/bin/bash
+set -e
+
+RC_FILE="$HOME/.zshrc"
+if [[ "$SHELL" == *bash* ]]; then
+  RC_FILE="$HOME/.bashrc"
+fi
+
+echo "🧠 ตั้งค่าเทอร์มินัล — ZyntroAI"
+echo "============================"
+
+MARKER="# === ZYNTROAI START ==="
+if grep -q "$MARKER" "$RC_FILE"; then
+  echo "✅ ตั้งค่าไว้แล้ว"
+  exit 0
+fi
+
+cat >> "$RC_FILE" << 'EOF'
+
+# === ZYNTROAI START ===
+# 🧠 ZyntroAI — Terminal Shortcuts
+# =================================
+
+# สี
+export GREY='\033[1;30m'
+export RED='\033[0;31m'
+export GREEN='\033[0;32m'
+export YELLOW='\033[1;33m'
+export BLUE='\033[0;34m'
+export PURPLE='\033[0;35m'
+export CYAN='\033[0;36m'
+export WHITE='\033[1;37m'
+export RESET='\033[0m'
+
+# Prompt
+export PS1="\n\[\$CYAN\]🧠 ZyntroAI \[\$GREEN\]\w\[\$RESET\] \$ "
+
+# ====== คำสั่งลัด ======
+alias z-start="cd ~/Projects/ZyntroAI-Project"
+alias z-dev="z-start && npm run dev"
+alias z-sync="z-start && git add . && git commit -m 'update' && git push"
+alias z-migrate="z-start && npx prisma migrate dev"
+alias z-deploy="z-start && npx vercel --prod"
+alias z-check="z-start && npm run lint && npm run build"
+
+# ====== สถานะด่วน ======
+alias z-status="echo '🧠 ZyntroAI Status' && git status"
+alias z-log="git log --oneline --graph -10"
+
+# === ZYNTROAI END ===
+EOF
+
+echo "✅ เพิ่มการตั้งค่าใน $RC_FILE"
+echo "รันคำสั่งนี้เพื่อใช้ทันที:"
+echo "source $RC_FILE"
+ 
+ 
+bash  
+chmod +x scripts/4-terminal-config.sh
+./scripts/4-terminal-config.sh
+ 
+ 
+ 
+ 
+📂 วางไฟล์ให้ถูกที่
+ 
+plaintext  
+ZyntroAI-Project/
+├── scripts/
+│   ├── 0-check-system.sh     ✅ ตรวจสอบ
+│   ├── 1-install-tools.sh    ✅ ติดตั้งเครื่องมือ
+│   ├── 2-setup-git.sh        ✅ ตั้งค่า Git+SSH
+│   ├── 3-init-project.sh     ✅ โคลน+ติดตั้ง
+│   └── 4-terminal-config.sh   ✅ ลัด+สี
+├── .env.example
+├── .gitignore
+├── package.json
+└── README.md
+ 
+ 
+เพิ่ม  scripts/  ลงใน  .gitignore  ถ้าไม่อยากส่งขึ้น หรือส่งขึ้นไว้ใช้ร่วมกันทีมก็ได้ครับ
+ 
+ 
+ 
+🚀 เริ่มต้นทั้งหมดใน 4 คำสั่ง
+ 
+bash  
+# 1. ตรวจสอบ
+./scripts/0-check-system.sh
+
+# 2. ติดตั้งเครื่องมือ
+./scripts/1-install-tools.sh
+
+# 3. ตั้งค่า Git
+./scripts/2-setup-git.sh
+
+# 4. เตรียมโปรเจกต์
+./scripts/3-init-project.sh
+
+# 5. (เลือก) ตั้งค่าลัดเทอร์มินัล
+./scripts/4-terminal-config.sh
+source ~/.zshrc  # หรือ .bashrc
+ 
+ 
+ 
+ 
+⌨️ คำสั่งลัดที่ได้
+ 
+คำสั่ง ทำอะไร 
+ z-start  ไปที่โฟลเดอร์โปรเจกต์ 
+ z-dev  เปิดโหมดพัฒนา 
+ z-sync  ส่งโค้ดขึ้น GitHub ทันที 
+ z-migrate  รัน Prisma Migrate 
+ z-deploy  ปรับใช้ขึ้น Vercel 
+ z-status  ดูสถานะ Git 
+ z-log  ดูประวัติการส่ง 
+ 
+ 
+ 
+ต้องการปรับเส้นทาง, เพิ่มคำสั่งลัดอื่น, หรือทำเป็นไฟล์เดียวที่รันจบทั้งหมดไหมครับ? 😊
