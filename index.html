@@ -1,0 +1,169 @@
+สร้างเว็บไซต์: ได้เลยครับ ✅ สร้างคู่มือ Termux API ครบชุด — ติดตั้ง, คำสั่งสำคัญ, และใช้งานร่วมกับ Git + Obsidian บนมือถือ 📱⚡
+ 
+ 
+ 
+📱 Termux API — คู่มือใช้งานบนมือถือ Android
+ 
+วัตถุประสงค์: ทำงานกับ Git / Obsidian / สคริปต์อัตโนมัติบนมือถือได้เหมือนคอม
+อัปเดต: 1 ตุลาคม 2026 | เวอร์ชัน: 1.0
+ 
+ 
+ 
+📦 ขั้นตอนติดตั้ง
+ 
+1️⃣ ติดตั้งแอป
+ 
+- Termux — จาก F-Droid (แนะนำ) หรือ Google Play
+- Termux:API — จาก F-Droid (ต้องติดตั้งคู่กัน)
+ 
+2️⃣ ติดตั้ง Package ภายใน Termux
+ 
+bash  
+# อัปเดตก่อน
+pkg update && pkg upgrade -y
+
+# ติดตั้ง Termux API
+pkg install termux-api -y
+
+# ติดตั้งเครื่องมือที่จำเป็น
+pkg install git python nodejs openssh -y
+ 
+ 
+3️⃣ ทดสอบว่าทำงาน
+ 
+bash  
+termux-battery-status
+# → แสดงสถานะแบตเตอรี่ = ติดตั้งสำเร็จ ✅
+ 
+ 
+ 
+ 
+⚡ คำสั่งสำคัญที่ใช้บ่อย
+ 
+คำสั่ง ทำอะไร ตัวอย่างการใช้ 
+ termux-battery-status  ดูสถานะแบต ตรวจสอบก่อนรันงานหนัก 
+ termux-clipboard-get  อ่านข้อความจากคลิปบอร์ด คัดลอกลิงก์ → วางลงสคริปต์ 
+ termux-clipboard-set "ข้อความ"  เขียนลงคลิปบอร์ด สร้างลิงก์แล้วคัดลอกทันที 
+ termux-notification  ส่งการแจ้งเตือน แจ้งเมื่อ git push เสร็จ 
+ termux-toast "ข้อความ"  แสดงข้อความโป๊ปอัพ แจ้งผลการทำงาน 
+ termux-vibrate  สั่นมือถือ แจ้งเมื่องานสำคัญเสร็จ 
+ termux-share -a send "ไฟล์"  แชร์ไฟล์ออก ส่งไฟล์ไปยังแอปอื่น 
+ termux-open-url "ลิงก์"  เปิดลิงก์ในเบราว์เซอร์ เปิด PR หลัง push เสร็จ 
+ 
+ 
+ 
+🚀 สคริปต์ตั้งค่าโปรเจกต์บนมือถือ
+ 
+สร้างไฟล์  setup-mobile.sh :
+ 
+bash  
+#!/data/data/com.termux/files/usr/bin/bash
+# setup-mobile.sh — ตั้งค่า ZyntroAI บนมือถือครั้งแรก
+set -e
+
+echo "🚀 เริ่มตั้งค่าโปรเจกต์บนมือถือ..."
+
+# 1. ตรวจสอบเครื่องมือ
+command -v git >/dev/null || { echo "❌ ติดตั้ง git ก่อน: pkg install git"; exit 1; }
+
+# 2. ตั้งค่า Git (ครั้งแรก)
+git config --global user.name "zyntromedia"
+git config --global user.email "zyntro.ai.studio@gmail.com"
+echo "✅ ตั้งค่า Git เรียบร้อย"
+
+# 3. โคลนโปรเจกต์
+cd ~/storage/shared  # หรือโฟลเดอร์ที่ต้องการ
+if [ ! -d "new-crystalcastle" ]; then
+    git clone https://github.com/ZyntroAI/new-crystalcastle.git
+    echo "✅ โคลนสำเร็จ"
+else
+    echo "ℹ️ มีอยู่แล้ว — ดึงอัปเดต"
+    cd new-crystalcastle && git pull
+fi
+
+# 4. แจ้งเตือนเมื่อเสร็จ
+termux-notification --title "✅ ตั้งค่าเสร็จ" --content "พร้อมใช้งาน Obsidian แล้ว"
+termux-vibrate -d 500
+
+echo "🎉 เสร็จแล้ว! เปิด Obsidian → ชี้ไปที่ new-crystalcastle/docs/"
+ 
+ 
+ให้สิทธิ์รัน:
+ 
+bash  
+chmod +x setup-mobile.sh
+./setup-mobile.sh
+ 
+ 
+ 
+ 
+🔄 สคริปต์ซิงค์อัตโนมัติ (ใช้บ่อย)
+ 
+สร้าง  sync-repo.sh :
+ 
+bash  
+#!/data/data/com.termux/files/usr/bin/bash
+# sync-repo.sh — ดึงอัปเดต + แจ้งผล
+cd ~/storage/shared/new-crystalcastle
+
+git pull origin main 2>&1 | tee /tmp/sync.log
+
+if [ $? -eq 0 ]; then
+    termux-notification --title "✅ ซิงค์สำเร็จ" --content "อัปเดตจาก main เรียบร้อย"
+    termux-toast "✅ Sync OK"
+else
+    termux-notification --title "❌ ซิงค์ล้มเหลว" --content "ตรวจสอบอินเทอร์เน็ตหรือสิทธิ์"
+    termux-vibrate -d 1000
+fi
+ 
+ 
+ 
+ 
+📝 เชื่อมกับ Obsidian Mobile
+ 
+plaintext  
+Termux (รัน Git)
+    ↓ จัดการไฟล์
+~/storage/shared/new-crystalcastle/docs/
+    ↓ เปิดใน
+Obsidian Mobile (แก้ไขโน้ต)
+    ↓ บันทึก
+Termux → git add / commit / push
+ 
+ 
+ขั้นตอนการใช้งานประจำวัน
+ 
+1. เปิด Termux → รัน  ./sync-repo.sh  (ดึงอัปเดตล่าสุด)
+2. เปิด Obsidian → แก้ไขโน้ต/เอกสาร
+3. กลับมาที่ Termux → commit + push:
+bash  
+cd ~/storage/shared/new-crystalcastle
+git add docs/
+git commit -m "docs: อัปเดตจากมือถือ"
+git push
+ 
+4. ได้รับการแจ้งเตือนเมื่อสำเร็จ ✅
+ 
+ 
+ 
+⚙️ ตั้งค่าให้รันอัตโนมัติ (Optional)
+ 
+ใช้ Termux:Widget หรือ Termux:Tasker เพื่อ:
+ 
+- ⏰ ซิงค์อัตโนมัติทุกเช้า 7 โมง
+- 📱 สั่งรันสคริปต์ด้วยการแตะไอคอนบนหน้าจอ
+- 🔔 แจ้งเตือนเมื่อมีอัปเดตจาก GitHub
+ 
+ 
+ 
+✅ สรุปสั้นๆ
+ 
+สิ่งที่ได้ รายละเอียด 
+📱 ทำงานบนมือถือได้เต็มรูปแบบ Git, Python, Node.js 
+🔔 แจ้งเตือนอัตโนมัติ ผ่าน Termux API 
+🔄 ซิงค์กับ GitHub ได้ เหมือนบนคอม 
+📔 เชื่อมกับ Obsidian ได้ แก้ไขเอกสารทุกที่ 
+ 
+ 
+ 
+ต้องการให้เขียนเป็นไฟล์  .sh  แยกให้พร้อมใช้งานไหมครับ? หรือเพิ่มส่วน ตั้งค่า SSH Key เพื่อ push โดยไม่ต้องกรอกรหัสทุกครั้ง? 😊
