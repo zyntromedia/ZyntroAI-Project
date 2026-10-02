@@ -1,63 +1,488 @@
-สร้างเว็บไซต์: ได้เลยครับ ✅ สร้างคู่มือ Termux API ครบชุด — ติดตั้ง, คำสั่งสำคัญ, และใช้งานร่วมกับ Git + Obsidian บนมือถือ 📱⚡
- 
- 
- 
-📱 Termux API — คู่มือใช้งานบนมือถือ Android
- 
-วัตถุประสงค์: ทำงานกับ Git / Obsidian / สคริปต์อัตโนมัติบนมือถือได้เหมือนคอม
-อัปเดต: 1 ตุลาคม 2026 | เวอร์ชัน: 1.0
- 
- 
- 
-📦 ขั้นตอนติดตั้ง
- 
-1️⃣ ติดตั้งแอป
- 
-- Termux — จาก F-Droid (แนะนำ) หรือ Google Play
-- Termux:API — จาก F-Droid (ต้องติดตั้งคู่กัน)
- 
-2️⃣ ติดตั้ง Package ภายใน Termux
- 
-bash  
-# อัปเดตก่อน
-pkg update && pkg upgrade -y
+```html
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termux API - คู่มือใช้งาน Git + Obsidian บน Android</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        termux: {
+                            bg: '#0c1017',
+                            card: '#161b22',
+                            border: '#30363d',
+                            green: '#10b981',
+                            accent: '#06b6d4',
+                            yellow: '#f59e0b',
+                            purple: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['Fira Code', 'JetBrains Mono', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'Kanit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Kanit & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Kanit', 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        code, pre, .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #21262d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #30363d;
+        }
+        .glow-green {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .glow-accent {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+        .glass-panel {
+            background: rgba(22, 27, 34, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(48, 54, 61, 0.7);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
 
-# ติดตั้ง Termux API
-pkg install termux-api -y
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-termux-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-terminal text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                        Termux API <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Mobile Dev</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">คู่มือ Git + Obsidian + SSH บน Android</p>
+                </div>
+            </div>
 
-# ติดตั้งเครื่องมือที่จำเป็น
-pkg install git python nodejs openssh -y
- 
- 
-3️⃣ ทดสอบว่าทำงาน
- 
-bash  
-termux-battery-status
-# → แสดงสถานะแบตเตอรี่ = ติดตั้งสำเร็จ ✅
- 
- 
- 
- 
-⚡ คำสั่งสำคัญที่ใช้บ่อย
- 
-คำสั่ง ทำอะไร ตัวอย่างการใช้ 
- termux-battery-status  ดูสถานะแบต ตรวจสอบก่อนรันงานหนัก 
- termux-clipboard-get  อ่านข้อความจากคลิปบอร์ด คัดลอกลิงก์ → วางลงสคริปต์ 
- termux-clipboard-set "ข้อความ"  เขียนลงคลิปบอร์ด สร้างลิงก์แล้วคัดลอกทันที 
- termux-notification  ส่งการแจ้งเตือน แจ้งเมื่อ git push เสร็จ 
- termux-toast "ข้อความ"  แสดงข้อความโป๊ปอัพ แจ้งผลการทำงาน 
- termux-vibrate  สั่นมือถือ แจ้งเมื่องานสำคัญเสร็จ 
- termux-share -a send "ไฟล์"  แชร์ไฟล์ออก ส่งไฟล์ไปยังแอปอื่น 
- termux-open-url "ลิงก์"  เปิดลิงก์ในเบราว์เซอร์ เปิด PR หลัง push เสร็จ 
- 
- 
- 
-🚀 สคริปต์ตั้งค่าโปรเจกต์บนมือถือ
- 
-สร้างไฟล์  setup-mobile.sh :
- 
-bash  
-#!/data/data/com.termux/files/usr/bin/bash
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                <a href="#install" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-download mr-1"></i> ติดตั้ง</a>
+                <a href="#python" class="hover:text-yellow-400 transition-colors"><i class="fa-brands fa-python mr-1"></i> Python Guide</a>
+                <a href="#commands" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-bolt mr-1"></i> คำสั่งสำคัญ</a>
+                <a href="#scripts" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-code mr-1"></i> สคริปต์ .sh</a>
+                <a href="#ssh" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-key mr-1"></i> ตั้งค่า SSH</a>
+                <a href="#obsidian" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-book-bookmark mr-1"></i> Obsidian Workflow</a>
+                <a href="#simulator" class="hover:text-emerald-400 transition-colors"><i class="fa-solid fa-desktop mr-1"></i> จำลองคำสั่ง</a>
+            </nav>
+
+            <div class="flex items-center space-x-2">
+                <span class="hidden sm:inline-flex items-center text-xs text-gray-400 bg-gray-800/80 px-2.5 py-1 rounded-full border border-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                    อัปเดต: 1 ต.ค. 2026 (v1.0)
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-grow">
+
+        <!-- Hero Section -->
+        <section class="relative rounded-2xl bg-gradient-to-br from-gray-900 via-termux-card to-gray-900 border border-termux-border p-6 sm:p-10 overflow-hidden shadow-2xl">
+            <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-10 -top-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
+                    <i class="fa-solid fa-mobile-screen-button"></i> เปลี่ยนมือถือ Android ให้เป็น Dev Workstation
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4 leading-tight">
+                    ทำงานกับ <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Git & Obsidian</span> บนมือถือ ได้สะดวกเหมือนอยู่บนคอมพิวเตอร์
+                </h2>
+                <p class="text-gray-300 text-base sm:text-lg mb-6 leading-relaxed">
+                    รวมคู่มือการติดตั้ง Termux API, สคริปต์ซิงค์อัตโนมัติ, การส่งแจ้งเตือนเข้ามือถือ, และการตั้งค่า SSH Key เพื่อ Push Code บน GitHub โดยไม่ต้องพิมพ์รหัสผ่านซ้ำๆ
+                </p>
+
+                <div class="flex flex-wrap gap-3">
+                    <a href="#install" class="inline-flex items-center px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-semibold text-sm transition-all shadow-lg hover:shadow-emerald-500/25">
+                        <i class="fa-solid fa-rocket mr-2"></i> เริ่มต้นใช้งาน
+                    </a>
+                    <a href="#scripts" class="inline-flex items-center px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-medium text-sm border border-gray-700 transition-all">
+                        <i class="fa-solid fa-file-code mr-2 text-cyan-400"></i> ดาวน์โหลด/คัดลอกสคริปต์
+                    </a>
+                    <a href="#simulator" class="inline-flex items-center px-5 py-2.5 rounded-xl bg-purple-900/40 hover:bg-purple-800/50 text-purple-200 font-medium text-sm border border-purple-500/30 transition-all">
+                        <i class="fa-solid fa-play mr-2 text-purple-400"></i> ทดลองรันคำสั่ง
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Installation -->
+        <section id="install" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">1</span>
+                <h2 class="text-2xl font-bold text-white">📦 ขั้นตอนการติดตั้ง (Installation Steps)</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-termux-card border border-termux-border rounded-xl p-5 hover:border-emerald-500/50 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">ขั้นตอนที่ 1</span>
+                        <i class="fa-brands fa-android text-2xl text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">1. ติดตั้งแอปพลิเคชัน</h3>
+                    <p class="text-sm text-gray-400 mb-4">แนะนำให้ติดตั้งผ่าน F-Droid เพื่อให้อัปเดตล่าสุดและสิทธิ์ API ทำงานได้อย่างสมบูรณ์</p>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                            <span><strong>Termux</strong> — จาก F-Droid (แนะนำ)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                            <span><strong>Termux:API</strong> — ติดตั้งคู่กัน</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-termux-card border border-termux-border rounded-xl p-5 hover:border-emerald-500/50 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20">ขั้นตอนที่ 2</span>
+                        <i class="fa-solid fa-box-open text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">2. ติดตั้ง Packages ใน Termux</h3>
+                    <p class="text-sm text-gray-400 mb-3">เปิดแอป Termux แล้วรันชุดคำสั่งเพื่ออัปเดตและติดตั้งเครื่องมือที่จำเป็น:</p>
+                    <div class="bg-gray-950 rounded-lg p-3 border border-gray-800 font-mono text-xs text-gray-300 relative group">
+                        <button onclick="copyText('pkg update && pkg upgrade -y && pkg install termux-api git python nodejs openssh -y', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <p class="text-emerald-400"># อัปเดตแพ็คเกจ</p>
+                        <p>pkg update && pkg upgrade -y</p>
+                        <p class="text-emerald-400 mt-2"># ติดตั้ง API และ Dev Tools</p>
+                        <p>pkg install termux-api -y</p>
+                        <p>pkg install git python nodejs openssh -y</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-termux-card border border-termux-border rounded-xl p-5 hover:border-emerald-500/50 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded border border-purple-500/20">ขั้นตอนที่ 3</span>
+                        <i class="fa-solid fa-vial-circle-check text-2xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">3. ทดสอบการทำงาน</h3>
+                    <p class="text-sm text-gray-400 mb-3">ตรวจสอบว่า Termux:API สามารถเข้าถึงฮาร์ดแวร์มือถือได้แล้ว:</p>
+                    <div class="bg-gray-950 rounded-lg p-3 border border-gray-800 font-mono text-xs text-gray-300 relative">
+                        <button onclick="copyText('termux-battery-status', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <p class="text-emerald-400">$ termux-battery-status</p>
+                        <p class="text-gray-400 text-[11px] mt-1">{ "HEALTH": "GOOD", "PERCENTAGE": 85, "PLUGGED": "UNPLUGGED" }</p>
+                    </div>
+                    <p class="text-xs text-emerald-400 mt-3 font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check"></i> หากขึ้นค่าแบตเตอรี่ถือว่าติดตั้งสำเร็จ ✅
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Python: Python Installation & Package Guide -->
+        <section id="python" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold">
+                    <i class="fa-brands fa-python text-lg"></i>
+                </span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">🐍 คู่มือการติดตั้ง Python & Packages (Python Setup Guide)</h2>
+                    <p class="text-xs text-gray-400">วิธีติดตั้ง Python, pip, Virtual Environment และแก้ปัญหาการคอมไพล์ C-extension บน Termux</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Python Core & Build Tools -->
+                <div class="bg-termux-card border border-termux-border rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-brands fa-python text-yellow-400"></i> 1. ติดตั้ง Python & Compilers
+                        </h3>
+                        <span class="text-xs font-mono text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">Essential</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">
+                        การลง Packages หลายตัวใน Python (เช่น NumPy, Cryptography, LXML) ต้องใช้ C Compiler (`clang`, `make`) ในการ build:
+                    </p>
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 relative">
+                        <button onclick="copyText('pkg install python clang make libffi openssl libxml2 libxslt -y && pip install --upgrade pip setuptools wheel', this)" class="absolute top-2 right-2 text-gray-400 hover:text-yellow-400 bg-gray-800 p-1.5 rounded transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <p class="text-yellow-400"># ติดตั้ง Python + Tools ช่วย build</p>
+                        <p>pkg install python clang make libffi openssl libxml2 libxslt -y</p>
+                        <p class="text-emerald-400 mt-2"># อัปเดต pip, setuptools, wheel</p>
+                        <p>pip install --upgrade pip setuptools wheel</p>
+                    </div>
+                </div>
+
+                <!-- Virtual Environment Setup -->
+                <div class="bg-termux-card border border-termux-border rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-box text-cyan-400"></i> 2. การสร้าง Virtual Environment (venv)
+                        </h3>
+                        <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">Best Practice</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">
+                        สร้างสภาพแวดล้อมแยกส่วนสำหรับแต่ละโปรเจกต์ เพื่อไม่ให้ Packages ตีกัน:
+                    </p>
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 relative">
+                        <button onclick="copyText('python -m venv venv && source venv/bin/activate', this)" class="absolute top-2 right-2 text-gray-400 hover:text-cyan-400 bg-gray-800 p-1.5 rounded transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <p class="text-cyan-400"># สร้าง venv ชื่อ venv</p>
+                        <p>python -m venv venv</p>
+                        <p class="text-emerald-400 mt-2"># เปิดใช้งาน venv</p>
+                        <p>source venv/bin/activate</p>
+                        <p class="text-gray-500 mt-2"># ปิดการใช้งานเมื่อทำเสร็จ: deactivate</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Packages Table & Gotchas -->
+            <div class="bg-termux-card border border-termux-border rounded-xl p-5 space-y-5">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-emerald-400"></i> Packages ยอดนิยม และวิธีจัดการปัญหา (Pip Installation Cheatsheet)
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <!-- Web Scraping & Automation -->
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                        <span class="text-emerald-400 font-bold block mb-1"><i class="fa-solid fa-globe mr-1"></i> Web & APIs</span>
+                        <code class="text-gray-300 bg-gray-900 px-1.5 py-0.5 rounded block mb-2 font-mono">pip install requests beautifulsoup4 httpx fastapi uvicorn</code>
+                        <p class="text-gray-400 text-[11px]">ใช้ยิง API, ทำ Web Scraping, หรือสร้าง REST Server ในมือถือ</p>
+                    </div>
+
+                    <!-- CLI & Automation Utilities -->
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                        <span class="text-cyan-400 font-bold block mb-1"><i class="fa-solid fa-terminal mr-1"></i> CLI Tools & Styling</span>
+                        <code class="text-gray-300 bg-gray-900 px-1.5 py-0.5 rounded block mb-2 font-mono">pip install rich click typer pyyaml pytest</code>
+                        <p class="text-gray-400 text-[11px]">ตกแต่ง Terminal ด้วยสีสัน สวยงาม และสร้าง CLI Scripts</p>
+                    </div>
+
+                    <!-- Data Science in Termux -->
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                        <span class="text-purple-400 font-bold block mb-1"><i class="fa-solid fa-chart-line mr-1"></i> Data & Math</span>
+                        <code class="text-gray-300 bg-gray-900 px-1.5 py-0.5 rounded block mb-2 font-mono">pkg install tur-repo && pkg install python-numpy python-pandas</code>
+                        <p class="text-gray-400 text-[11px]">แนะนำลงผ่าน `pkg` (TUR repository) เพื่อเลี่ยงการ compile ช้า</p>
+                    </div>
+                </div>
+
+                <!-- Termux API Python Code Snippet -->
+                <div class="border-t border-termux-border pt-4">
+                    <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-brands fa-python text-yellow-400"></i> ตัวอย่างโค้ด Python เรียกใช้ Termux API
+                    </h4>
+                    <div class="bg-gray-950 p-4 rounded-lg border border-gray-800 font-mono text-xs text-gray-200 overflow-x-auto relative">
+                        <button onclick="copyText('import subprocess\nimport json\n\ndef notify_android(title, message):\n    subprocess.run(["termux-notification", "--title", title, "--content", message])\n    subprocess.run(["termux-vibrate", "-d", "300"])\n\n# เรียกใช้แจ้งเตือนผ่านมือถือ\nnotify_android("🐍 Python Script", "ทำงานเสร็จเรียบร้อยแล้ว!")', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <p class="text-gray-500"># termux_notify.py — เรียก Termux API ผ่าน Python subprocess</p>
+                        <p><span class="text-purple-400">import</span> subprocess</p>
+                        <p><span class="text-purple-400">import</span> json</p>
+                        <br>
+                        <p><span class="text-purple-400">def</span> <span class="text-cyan-400">notify_android</span>(title, message):</p>
+                        <p class="pl-4">subprocess.run([<span class="text-emerald-400">"termux-notification"</span>, <span class="text-emerald-400">"--title"</span>, title, <span class="text-emerald-400">"--content"</span>, message])</p>
+                        <p class="pl-4">subprocess.run([<span class="text-emerald-400">"termux-vibrate"</span>, <span class="text-emerald-400">"-d"</span>, <span class="text-emerald-400">"300"</span>])</p>
+                        <br>
+                        <p><span class="text-gray-500"># เรียกใช้งาน</span></p>
+                        <p>notify_android(<span class="text-emerald-400">"🐍 Python Script"</span>, <span class="text-emerald-400">"ทำงานเสร็จเรียบร้อยแล้ว!"</span>)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Essential Commands -->
+        <section id="commands" class="scroll-mt-20">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center space-x-3">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">2</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">⚡ คำสั่งสำคัญที่ใช้บ่อย (API Cheatsheet)</h2>
+                        <p class="text-xs text-gray-400">ค้นหาและคัดลอกคำสั่ง Termux API สำหรับนำไปสร้างสคริปต์</p>
+                    </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" id="commandSearch" oninput="filterCommands()" placeholder="ค้นหาคำสั่ง หรือ การใช้งาน..." class="w-full bg-termux-card border border-termux-border rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                </div>
+            </div>
+
+            <div class="bg-termux-card border border-termux-border rounded-xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-900/80 border-b border-termux-border text-xs uppercase tracking-wider text-gray-400 font-semibold">
+                                <th class="py-3.5 px-4">คำสั่ง (Command)</th>
+                                <th class="py-3.5 px-4">หน้าที่ (Description)</th>
+                                <th class="py-3.5 px-4">ตัวอย่างการใช้งาน</th>
+                                <th class="py-3.5 px-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commandTableBody" class="divide-y divide-termux-border text-sm">
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-battery-status</td>
+                                <td class="py-3 px-4 text-gray-300">ดูสถานะแบตเตอรี่ เปอร์เซ็นต์ และอุณหภูมิ</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">ตรวจสอบก่อนรันงานหนัก</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-battery-status', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-clipboard-get</td>
+                                <td class="py-3 px-4 text-gray-300">อ่านข้อความล่าสุดจากคลิปบอร์ด</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">คัดลอกลิงก์ → วางลงในสคริปต์</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-clipboard-get', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-clipboard-set "ข้อความ"</td>
+                                <td class="py-3 px-4 text-gray-300">เขียนข้อความลงในคลิปบอร์ดมือถือ</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">สร้างลิงก์แล้วคัดลอกทันที</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-clipboard-set \"Hello Termux\"', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-notification</td>
+                                <td class="py-3 px-4 text-gray-300">ส่งการแจ้งเตือน (Notification Bar)</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">แจ้งเมื่อ git push เสร็จสมบูรณ์</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-notification --title \"✅ Git Push\" --content \"อัปเดตงานเรียบร้อยแล้ว\"', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-toast "ข้อความ"</td>
+                                <td class="py-3 px-4 text-gray-300">แสดงข้อความป๊อปอัปสั้นๆ บนหน้าจอ</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">แจ้งผลการทำงานด่วน</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-toast \"✅ Sync Completed!\"', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-vibrate</td>
+                                <td class="py-3 px-4 text-gray-300">สั่งให้ระบบสั่นตามระยะเวลาที่กำหนด (-d ms)</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">สั่นแจ้งเตือนเมื่อเกิด Error หรือเสร็จงาน</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-vibrate -d 500', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-share -a send "ไฟล์"</td>
+                                <td class="py-3 px-4 text-gray-300">ส่งไฟล์ออกไปยังแอปอื่นบนระบบ Android</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">ส่งไฟล์ที่รันสร้างเสร็จไป LINE/Gmail</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-share -a send report.txt', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="py-3 px-4 font-mono text-emerald-400 font-semibold whitespace-nowrap">termux-open-url "URL"</td>
+                                <td class="py-3 px-4 text-gray-300">เปิดลิงก์ใน Chrome/Browser เริ่มต้น</td>
+                                <td class="py-3 px-4 text-gray-400 font-mono text-xs">เปิด GitHub Pull Request หลัง Push</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="copyText('termux-open-url \"https://github.com\"', this)" class="px-2.5 py-1 bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 border border-gray-700 rounded text-xs transition">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Scripts Section -->
+        <section id="scripts" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">3</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">🚀 สคริปต์อัตโนมัติพร้อมใช้งาน (.sh Scripts)</h2>
+                    <p class="text-xs text-gray-400">เลือกดูคัดลอกหรือดาวน์โหลดสคริปต์การทำงานอัตโนมัติบนมือถือ</p>
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex border-b border-termux-border space-x-2 mb-4 overflow-x-auto pb-1">
+                <button onclick="switchTab('tab-setup')" id="btn-tab-setup" class="tab-btn px-4 py-2 rounded-t-lg font-medium text-sm border-b-2 border-emerald-400 bg-termux-card text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-gears"></i> setup-mobile.sh (ตั้งค่าครั้งแรก)
+                </button>
+                <button onclick="switchTab('tab-sync')" id="btn-tab-sync" class="tab-btn px-4 py-2 rounded-t-lg font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-rotate text-cyan-400"></i> sync-repo.sh (ดึงอัปเดต)
+                </button>
+                <button onclick="switchTab('tab-ssh-script')" id="btn-tab-ssh-script" class="tab-btn px-4 py-2 rounded-t-lg font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-purple-400"></i> setup-ssh.sh (สร้าง SSH Key)
+                </button>
+            </div>
+
+            <!-- Tab Content: setup-mobile.sh -->
+            <div id="tab-setup" class="tab-content block">
+                <div class="bg-termux-card border border-termux-border rounded-xl p-4 sm:p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-termux-border">
+                        <div>
+                            <h3 class="text-lg font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-file-code text-emerald-400"></i> setup-mobile.sh
+                            </h3>
+                            <p class="text-xs text-gray-400">สคริปต์สำหรับการ Setup ZyntroAI / โปรเจกต์ Git บนมือถือครั้งแรก</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyScript('script-setup-code', this)" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-regular fa-copy"></i> คัดลอกสคริปต์
+                            </button>
+                        </div>
+                    </div>
+
+                    <pre id="script-setup-code" class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs sm:text-sm font-mono text-gray-200 overflow-x-auto leading-relaxed"><code>#!/data/data/com.termux/files/usr/bin/bash
 # setup-mobile.sh — ตั้งค่า ZyntroAI บนมือถือครั้งแรก
 set -e
 
@@ -85,24 +510,33 @@ fi
 termux-notification --title "✅ ตั้งค่าเสร็จ" --content "พร้อมใช้งาน Obsidian แล้ว"
 termux-vibrate -d 500
 
-echo "🎉 เสร็จแล้ว! เปิด Obsidian → ชี้ไปที่ new-crystalcastle/docs/"
- 
- 
-ให้สิทธิ์รัน:
- 
-bash  
-chmod +x setup-mobile.sh
-./setup-mobile.sh
- 
- 
- 
- 
-🔄 สคริปต์ซิงค์อัตโนมัติ (ใช้บ่อย)
- 
-สร้าง  sync-repo.sh :
- 
-bash  
-#!/data/data/com.termux/files/usr/bin/bash
+echo "🎉 เสร็จแล้ว! เปิด Obsidian → ชี้ไปที่ new-crystalcastle/docs/"</code></pre>
+
+                    <div class="mt-4 p-3 bg-gray-900/60 rounded-lg border border-gray-800 text-xs text-gray-300">
+                        <span class="font-bold text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> คำสั่งให้สิทธิ์และรัน:</span>
+                        <code class="ml-2 font-mono text-emerald-400 bg-black/50 px-2 py-0.5 rounded">chmod +x setup-mobile.sh && ./setup-mobile.sh</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: sync-repo.sh -->
+            <div id="tab-sync" class="tab-content hidden">
+                <div class="bg-termux-card border border-termux-border rounded-xl p-4 sm:p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-termux-border">
+                        <div>
+                            <h3 class="text-lg font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-file-code text-cyan-400"></i> sync-repo.sh
+                            </h3>
+                            <p class="text-xs text-gray-400">สคริปต์สำหรับดึงอัปเดตจาก GitHub พร้อมส่ง Notification และ Toast บนมือถือ</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyScript('script-sync-code', this)" class="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-regular fa-copy"></i> คัดลอกสคริปต์
+                            </button>
+                        </div>
+                    </div>
+
+                    <pre id="script-sync-code" class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs sm:text-sm font-mono text-gray-200 overflow-x-auto leading-relaxed"><code>#!/data/data/com.termux/files/usr/bin/bash
 # sync-repo.sh — ดึงอัปเดต + แจ้งผล
 cd ~/storage/shared/new-crystalcastle
 
@@ -114,56 +548,500 @@ if [ $? -eq 0 ]; then
 else
     termux-notification --title "❌ ซิงค์ล้มเหลว" --content "ตรวจสอบอินเทอร์เน็ตหรือสิทธิ์"
     termux-vibrate -d 1000
+fi</code></pre>
+
+                    <div class="mt-4 p-3 bg-gray-900/60 rounded-lg border border-gray-800 text-xs text-gray-300">
+                        <span class="font-bold text-cyan-400"><i class="fa-solid fa-circle-info mr-1"></i> วิธีใช้งานประจำวัน:</span>
+                        <code class="ml-2 font-mono text-emerald-400 bg-black/50 px-2 py-0.5 rounded">chmod +x sync-repo.sh && ./sync-repo.sh</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: setup-ssh.sh -->
+            <div id="tab-ssh-script" class="tab-content hidden">
+                <div class="bg-termux-card border border-termux-border rounded-xl p-4 sm:p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-termux-border">
+                        <div>
+                            <h3 class="text-lg font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-file-code text-purple-400"></i> setup-ssh.sh
+                            </h3>
+                            <p class="text-xs text-gray-400">สคริปต์อัตโนมัติสร้าง SSH Key และแสดง Public Key เพื่อคัดลอกลง GitHub</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyScript('script-ssh-code', this)" class="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-regular fa-copy"></i> คัดลอกสคริปต์
+                            </button>
+                        </div>
+                    </div>
+
+                    <pre id="script-ssh-code" class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs sm:text-sm font-mono text-gray-200 overflow-x-auto leading-relaxed"><code>#!/data/data/com.termux/files/usr/bin/bash
+# setup-ssh.sh — สร้าง SSH Key อัตโนมัติบน Termux
+set -e
+
+EMAIL="zyntro.ai.studio@gmail.com"
+
+echo "🔑 กำลังสร้าง SSH Key แบบ ED25519..."
+
+if [ ! -f ~/.ssh/id_ed25519 ]; then
+    ssh-keygen -t ed25519 -C "$EMAIL" -f ~/.ssh/id_ed25519 -N ""
+    echo "✅ สร้าง SSH Key เรียบร้อยแล้ว!"
+else
+    echo "ℹ️ มี SSH Key อยู่แล้ว"
 fi
- 
- 
- 
- 
-📝 เชื่อมกับ Obsidian Mobile
- 
-plaintext  
-Termux (รัน Git)
-    ↓ จัดการไฟล์
-~/storage/shared/new-crystalcastle/docs/
-    ↓ เปิดใน
-Obsidian Mobile (แก้ไขโน้ต)
-    ↓ บันทึก
-Termux → git add / commit / push
- 
- 
-ขั้นตอนการใช้งานประจำวัน
- 
-1. เปิด Termux → รัน  ./sync-repo.sh  (ดึงอัปเดตล่าสุด)
-2. เปิด Obsidian → แก้ไขโน้ต/เอกสาร
-3. กลับมาที่ Termux → commit + push:
-bash  
-cd ~/storage/shared/new-crystalcastle
-git add docs/
-git commit -m "docs: อัปเดตจากมือถือ"
-git push
- 
-4. ได้รับการแจ้งเตือนเมื่อสำเร็จ ✅
- 
- 
- 
-⚙️ ตั้งค่าให้รันอัตโนมัติ (Optional)
- 
-ใช้ Termux:Widget หรือ Termux:Tasker เพื่อ:
- 
-- ⏰ ซิงค์อัตโนมัติทุกเช้า 7 โมง
-- 📱 สั่งรันสคริปต์ด้วยการแตะไอคอนบนหน้าจอ
-- 🔔 แจ้งเตือนเมื่อมีอัปเดตจาก GitHub
- 
- 
- 
-✅ สรุปสั้นๆ
- 
-สิ่งที่ได้ รายละเอียด 
-📱 ทำงานบนมือถือได้เต็มรูปแบบ Git, Python, Node.js 
-🔔 แจ้งเตือนอัตโนมัติ ผ่าน Termux API 
-🔄 ซิงค์กับ GitHub ได้ เหมือนบนคอม 
-📔 เชื่อมกับ Obsidian ได้ แก้ไขเอกสารทุกที่ 
- 
- 
- 
-ต้องการให้เขียนเป็นไฟล์  .sh  แยกให้พร้อมใช้งานไหมครับ? หรือเพิ่มส่วน ตั้งค่า SSH Key เพื่อ push โดยไม่ต้องกรอกรหัสทุกครั้ง? 😊
+
+# คัดลอก Public Key ลง Termux Clipboard
+PUBLIC_KEY=$(cat ~/.ssh/id_ed25519.pub)
+echo "$PUBLIC_KEY" | termux-clipboard-set
+
+termux-toast "📋 คัดลอก SSH Key ลง Clipboard แล้ว!"
+termux-notification --title "🔑 SSH Key Ready" --content "เปิด GitHub → Add SSH Key แล้ววางได้เลย"
+
+echo "------------------------------------------------ shadow"
+echo "👇 นี่คือ Public Key ของคุณ (ถูกคัดลอกลง Clipboard แล้ว):"
+echo ""
+echo "$PUBLIC_KEY"
+echo ""
+echo "👉 นำไปวางใน: https://github.com/settings/ssh/new"</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: SSH Key Setup Guide -->
+        <section id="ssh" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">4</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">🔐 คู่มือตั้งค่า SSH Key (ไม่ต้องกรอกรหัสผ่านซ้ำ)</h2>
+                    <p class="text-xs text-gray-400">เพื่อความปลอดภัยและการ Push Code ขึ้น GitHub ได้ทันทีจากมือถือ</p>
+                </div>
+            </div>
+
+            <div class="bg-termux-card border border-termux-border rounded-xl p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Step A -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+                            <i class="fa-solid fa-key"></i> Step 1: สร้าง SSH Key ใน Termux
+                        </div>
+                        <p class="text-xs text-gray-300">รันคำสั่งเพื่อสร้าง Ed25519 Key (ปลอดภัยสูงและประมวลผลเร็ว):</p>
+                        <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 relative">
+                            <button onclick="copyText('ssh-keygen -t ed25519 -C \"zyntro.ai.studio@gmail.com\"', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <p class="text-emerald-400">$ ssh-keygen -t ed25519 -C "zyntro.ai.studio@gmail.com"</p>
+                            <p class="text-gray-500 mt-1"># กด Enter ผ่านทุกขั้นตอนได้เลย</p>
+                        </div>
+                    </div>
+
+                    <!-- Step B -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                            <i class="fa-solid fa-copy"></i> Step 2: อ่านและคัดลอก Public Key
+                        </div>
+                        <p class="text-xs text-gray-300">ใช้ Termux API เพื่อส่ง Key เข้าคลิปบอร์ดมือถือทันที:</p>
+                        <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 relative">
+                            <button onclick="copyText('cat ~/.ssh/id_ed25519.pub | termux-clipboard-set && termux-toast \"คัดลอก Key แล้ว!\"', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <p class="text-cyan-400">$ cat ~/.ssh/id_ed25519.pub | termux-clipboard-set</p>
+                            <p class="text-gray-500 mt-1"># Public Key จะถูกคัดลอกลงมือถือทันที</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-termux-border">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Step C -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-purple-400 font-semibold text-sm">
+                            <i class="fa-brands fa-github"></i> Step 3: เพิ่ม Key บน GitHub
+                        </div>
+                        <ol class="text-xs text-gray-300 space-y-1.5 list-decimal pl-4">
+                            <li>เปิดเบราว์เซอร์ไปที่ <a href="https://github.com/settings/ssh/new" target="_blank" class="text-emerald-400 underline">github.com/settings/ssh/new</a></li>
+                            <li>ช่อง <strong>Title</strong>: ตั้งชื่อเครื่อง เช่น <code class="bg-gray-800 px-1 rounded">Android-Termux</code></li>
+                            <li>ช่อง <strong>Key</strong>: กด วาง (Paste) ค่า Public Key ที่คัดลอกมา</li>
+                            <li>กดปุ่ม <strong>Add SSH key</strong></li>
+                        </ol>
+                    </div>
+
+                    <!-- Step D -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                            <i class="fa-solid fa-check-double"></i> Step 4: ทดสอบการเชื่อมต่อ
+                        </div>
+                        <p class="text-xs text-gray-300">ทดสอบการเชื่อมต่อ SSH กับ GitHub จาก Termux:</p>
+                        <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 relative">
+                            <button onclick="copyText('ssh -T git@github.com', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <p class="text-amber-400">$ ssh -T git@github.com</p>
+                            <p class="text-gray-400 text-[11px] mt-1">Hi zyntromedia! You've successfully authenticated.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Obsidian Workflow -->
+        <section id="obsidian" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">5</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">📝 เชื่อมต่อกับ Obsidian Mobile</h2>
+                    <p class="text-xs text-gray-400">โครงสร้างไดอะแกรมขั้นตอนการทำงานและคำสั่ง Git ประจำวัน</p>
+                </div>
+            </div>
+
+            <!-- Visual Flowchart -->
+            <div class="bg-termux-card border border-termux-border rounded-xl p-6 mb-6">
+                <h3 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-emerald-400"></i> โครงสร้างการไหลของข้อมูล (Data Architecture)
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div class="p-4 rounded-xl bg-gray-900 border border-emerald-500/30 flex flex-col items-center">
+                        <i class="fa-solid fa-terminal text-2xl text-emerald-400 mb-2"></i>
+                        <span class="text-xs font-bold text-white">1. Termux</span>
+                        <span class="text-[11px] text-gray-400 mt-1">รัน <code class="text-emerald-400">./sync-repo.sh</code> ดึงข้อมูลล่าสุด</span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-gray-900 border border-cyan-500/30 flex flex-col items-center">
+                        <i class="fa-solid fa-folder-tree text-2xl text-cyan-400 mb-2"></i>
+                        <span class="text-xs font-bold text-white">2. Storage Shared</span>
+                        <span class="text-[11px] text-gray-400 mt-1">~/storage/shared/new-crystalcastle/docs/</span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-gray-900 border border-purple-500/30 flex flex-col items-center">
+                        <i class="fa-solid fa-book-bookmark text-2xl text-purple-400 mb-2"></i>
+                        <span class="text-xs font-bold text-white">3. Obsidian Mobile</span>
+                        <span class="text-[11px] text-gray-400 mt-1">เปิด Vault แก้ไขบันทึก/โน้ตเอกสาร</span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-gray-900 border border-amber-500/30 flex flex-col items-center">
+                        <i class="fa-brands fa-github text-2xl text-amber-400 mb-2"></i>
+                        <span class="text-xs font-bold text-white">4. GitHub Cloud</span>
+                        <span class="text-[11px] text-gray-400 mt-1">Commit + Push ผ่าน SSH กลับขึ้น Repository</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Steps Box -->
+            <div class="bg-termux-card border border-termux-border rounded-xl p-6">
+                <h3 class="text-base font-bold text-white mb-4">ขั้นตอนการทำงานประจำวัน (Daily Routine)</h3>
+                <div class="space-y-4 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                        <div>
+                            <p class="text-white font-medium">เปิด Termux แล้วรันสคริปต์ซิงค์ข้อมูลล่าสุด:</p>
+                            <code class="text-xs font-mono text-emerald-400 bg-gray-950 px-2 py-1 rounded border border-gray-800 mt-1 inline-block">./sync-repo.sh</code>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                        <div>
+                            <p class="text-white font-medium">เปิดแอป Obsidian Mobile แล้วเขียน/แก้ไข Markdown โน้ตตามต้องการ</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                        <div>
+                            <p class="text-white font-medium">สลับกลับมาที่ Termux เพื่อบันทึกและส่งงาน (Commit & Push):</p>
+                            <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-xs text-gray-300 mt-2 relative">
+                                <button onclick="copyText('cd ~/storage/shared/new-crystalcastle && git add docs/ && git commit -m \"docs: อัปเดตจากมือถือ\" && git push', this)" class="absolute top-2 right-2 text-gray-400 hover:text-emerald-400 bg-gray-800 p-1.5 rounded transition">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                                <p class="text-gray-400">cd ~/storage/shared/new-crystalcastle</p>
+                                <p class="text-emerald-400">git add docs/</p>
+                                <p class="text-emerald-400">git commit -m "docs: อัปเดตจากมือถือ"</p>
+                                <p class="text-emerald-400">git push</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                        <div>
+                            <p class="text-white font-medium">รอรับการแจ้งเตือน Push notification จาก Termux API บนหน้าจอมือถือ ✅</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Optional Automation -->
+        <section class="bg-gradient-to-r from-emerald-950/40 via-termux-card to-cyan-950/40 border border-termux-border rounded-xl p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <i class="fa-solid fa-clock text-amber-400 text-xl"></i>
+                <h2 class="text-xl font-bold text-white">⚙️ การตั้งค่าระบบอัตโนมัติเพิ่มเติม (Optional Automation)</h2>
+            </div>
+            <p class="text-sm text-gray-300 mb-4">
+                คุณสามารถเสริมความสะดวกในการใช้งานผ่านแอปพลิเคชัน <strong>Termux:Widget</strong> หรือ <strong>Termux:Tasker</strong> เพื่อเพิ่มประสิทธิภาพดังนี้:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
+                    <span class="text-amber-400 font-bold block mb-1"><i class="fa-regular fa-bell mr-1"></i> ตั้งเวลาซิงค์</span>
+                    <p class="text-gray-400">ตั้งค่า Auto-Sync สคริปต์อัตโนมัติทุกเช้า 07:00 น. ก่อนเริ่มงาน</p>
+                </div>
+                <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
+                    <span class="text-emerald-400 font-bold block mb-1"><i class="fa-solid fa-icons mr-1"></i> Widget หน้าจอหลัก</span>
+                    <p class="text-gray-400">แปะไอคอนปุ่ม Sync ไว้หน้าจอ Home Screen แตะครั้งเดียวรันสคริปต์ทันที</p>
+                </div>
+                <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
+                    <span class="text-cyan-400 font-bold block mb-1"><i class="fa-brands fa-github mr-1"></i> Alert เมื่อมี Commits</span>
+                    <p class="text-gray-400">ส่งเสียงสั่นพร้อมการแจ้งเตือนทันทีที่มีอัปเดตใหม่มาจาก GitHub</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Interactive Terminal Simulator -->
+        <section id="simulator" class="scroll-mt-20">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">7</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white">🖥️ จำลองการรันคำสั่ง Termux (Terminal Emulator)</h2>
+                    <p class="text-xs text-gray-400">ทดลองคลิกปุ่มหรือพิมพ์คำสั่งเพื่อดูผลลัพธ์จำลองของ Termux API</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden shadow-2xl font-mono text-xs">
+                <!-- Terminal Titlebar -->
+                <div class="bg-gray-900 px-4 py-2.5 flex items-center justify-between border-b border-gray-800">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                        <span class="text-gray-400 text-xs ml-2">termux@android-mobile:~</span>
+                    </div>
+                    <span class="text-gray-500 text-[11px]">Interactive Shell v1.0</span>
+                </div>
+
+                <!-- Terminal Quick Action Buttons -->
+                <div class="p-3 bg-gray-900/50 border-b border-gray-800 flex flex-wrap gap-2 text-xs">
+                    <span class="text-gray-400 self-center font-sans">คำสั่งด่วน:</span>
+                    <button onclick="runSimulatedCommand('termux-battery-status')" class="px-2.5 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded hover:bg-emerald-900 transition">
+                        termux-battery-status
+                    </button>
+                    <button onclick="runSimulatedCommand('./sync-repo.sh')" class="px-2.5 py-1 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded hover:bg-cyan-900 transition">
+                        ./sync-repo.sh
+                    </button>
+                    <button onclick="runSimulatedCommand('termux-vibrate')" class="px-2.5 py-1 bg-purple-950 text-purple-400 border border-purple-800 rounded hover:bg-purple-900 transition">
+                        termux-vibrate -d 500
+                    </button>
+                    <button onclick="runSimulatedCommand('clear')" class="px-2.5 py-1 bg-gray-800 text-gray-300 border border-gray-700 rounded hover:bg-gray-700 transition ml-auto">
+                        Clear Log
+                    </button>
+                </div>
+
+                <!-- Terminal Screen Output -->
+                <div id="terminalScreen" class="p-4 h-64 overflow-y-auto space-y-2 text-gray-300">
+                    <p class="text-gray-500">Welcome to Termux API Mobile Environment (Android 14)</p>
+                    <p class="text-gray-500">Type a command or click quick action buttons above...</p>
+                </div>
+
+                <!-- Terminal Input Line -->
+                <div class="p-3 bg-gray-900/80 border-t border-gray-800 flex items-center space-x-2">
+                    <span class="text-emerald-400 font-bold">$</span>
+                    <input type="text" id="terminalInput" onkeydown="handleTerminalKeyPress(event)" placeholder="พิมพ์คำสั่ง เช่น termux-battery-status หรือ clear..." class="w-full bg-transparent text-white text-xs focus:outline-none font-mono">
+                    <button onclick="executeTerminalInput()" class="px-3 py-1 bg-emerald-500 text-black font-bold rounded text-xs hover:bg-emerald-400 transition">
+                        RUN
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section class="bg-termux-card border border-termux-border rounded-xl p-6">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-emerald-400"></i> สรุปประโยชน์ของ Termux API ชุดนี้
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-900 border-b border-termux-border text-xs text-gray-400 uppercase">
+                            <th class="py-3 px-4">สิ่งที่ได้</th>
+                            <th class="py-3 px-4">รายละเอียดการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-termux-border">
+                        <tr>
+                            <td class="py-3 px-4 font-semibold text-emerald-400">📱 ทำงานบนมือถือได้เต็มรูปแบบ</td>
+                            <td class="py-3 px-4 text-gray-300">ใช้งาน Git, Python, Node.js และเครื่องมือ Dev ได้ทุกที่</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4 font-semibold text-cyan-400">🔔 แจ้งเตือนอัตโนมัติ</td>
+                            <td class="py-3 px-4 text-gray-300">แจ้งผลการซิงค์หรือข้อผิดพลาดผ่าน Notification, Toast และสั่นมือถือ</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4 font-semibold text-purple-400">🔄 ซิงค์กับ GitHub สะดวก</td>
+                            <td class="py-3 px-4 text-gray-300">ดึงและอัปเดตโค้ดอัตโนมัติผ่าน SSH Key โดยไม่ต้องพิมพ์รหัสซ้ำ</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4 font-semibold text-amber-400">📔 เชื่อมกับ Obsidian ได้ลงตัว</td>
+                            <td class="py-3 px-4 text-gray-300">แก้ไขเอกสาร/โน้ตบนมือถือ แล้ว Push ขึ้น Repo ได้ทันที</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Toast Notification Popup -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-emerald-500 text-black font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-sm border border-emerald-300">
+            <i class="fa-solid fa-circle-check text-lg"></i>
+            <span id="toastMessage">คัดลอกข้อความเรียบร้อยแล้ว!</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-termux-border bg-gray-950 py-6 text-center text-xs text-gray-500">
+        <p>Termux API Mobile Guide • ZyntroAI Studio Document • Updated October 2026</p>
+    </footer>
+
+    <script>
+        // Copy functionality with fallback for iframe compatibility
+        function copyText(text, btnElement) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast('📋 คัดลอกคำสั่งเรียบร้อยแล้ว!');
+                if (btnElement) {
+                    const originalHTML = btnElement.innerHTML;
+                    btnElement.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i>';
+                    setTimeout(() => {
+                        btnElement.innerHTML = originalHTML;
+                    }, 1500);
+                }
+            } catch (err) {
+                showToast('❌ คัดลอกไม่สำเร็จ');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function copyScript(elementId, btnElement) {
+            const codeText = document.getElementById(elementId).innerText;
+            copyText(codeText, btnElement);
+        }
+
+        // Show Toast Function
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Script Tabs Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-400', 'text-emerald-400', 'bg-termux-card');
+                btn.classList.add('border-transparent', 'text-gray-400');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('border-transparent', 'text-gray-400');
+            activeBtn.classList.add('border-emerald-400', 'text-emerald-400', 'bg-termux-card');
+        }
+
+        // Search Filter for Commands Table
+        function filterCommands() {
+            const input = document.getElementById('commandSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#commandTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Terminal Simulator Logic
+        function runSimulatedCommand(cmd) {
+            const screen = document.getElementById('terminalScreen');
+            
+            if (cmd === 'clear') {
+                screen.innerHTML = '<p class="text-gray-500">Terminal cleared.</p>';
+                return;
+            }
+
+            const cmdLine = document.createElement('p');
+            cmdLine.className = 'text-emerald-400 font-bold mt-2';
+            cmdLine.innerText = '$ ' + cmd;
+            screen.appendChild(cmdLine);
+
+            const response = document.createElement('div');
+            response.className = 'text-gray-300 ml-2 border-l-2 border-emerald-500/40 pl-2 my-1';
+
+            if (cmd === 'termux-battery-status') {
+                response.innerHTML = `
+<pre class="text-amber-400 text-[11px]">{
+  "HEALTH": "GOOD",
+  "PERCENTAGE": 88,
+  "PLUGGED": "UNPLUGGED",
+  "STATUS": "DISCHARGING",
+  "TEMPERATURE": 31.2
+}</pre>`;
+                showToast('🔋 Battery Status: 88% (Good)');
+            } else if (cmd === './sync-repo.sh') {
+                response.innerHTML = `
+<p class="text-gray-400">Fetching origin main...</p>
+<p class="text-emerald-400">Updating 8a1f2e4..b9c0d12</p>
+<p class="text-gray-300">Fast-forward docs/notes.md | +12 -2</p>
+<p class="text-cyan-400">✅ Termux Notification sent to Android Status Bar</p>`;
+                showToast('✅ Sync Completed Successfully!');
+            } else if (cmd.includes('termux-vibrate')) {
+                response.innerHTML = `<p class="text-purple-400">📳 Device vibrated for 500ms</p>`;
+                showToast('📳 Device Vibrated!');
+            } else {
+                response.innerHTML = `<p class="text-gray-400">Command executed successfully: <span class="text-white">${cmd}</span></p>`;
+            }
+
+            screen.appendChild(response);
+            screen.scrollTop = screen.scrollHeight;
+        }
+
+        function handleTerminalKeyPress(e) {
+            if (e.key === 'Enter') {
+                executeTerminalInput();
+            }
+        }
+
+        function executeTerminalInput() {
+            const input = document.getElementById('terminalInput');
+            const val = input.value.trim();
+            if (val) {
+                runSimulatedCommand(val);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
+```
