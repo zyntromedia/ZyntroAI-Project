@@ -586,3 +586,305 @@ zyntro-buttons/
 เสร็จเรียบร้อยแล้วครับ! 🎉 พร้อมนำไปใช้ในโปรเจกต์หรือเผยแพร่บน npm ได้ทันที ถ้าต้องการปรับอะไรเพิ่ม เช่น ธีมสีใหม่, variant เพิ่ม, หรือการผสานกับ framework เฉพาะทาง บอกได้เลยครับ 😎🔥
 
 Tap **Fast** then select **Pro** if you'd like me to generate the complete ready-to-upload project archive with all files combined and organized.
+
+📖 GitHub CodeQL Alerts ผ่าน REST API — คู่มือฉบับสมบูรณ์
+ 
+Related: [[CodeQL and Claude]], [[GitHub REST API]]
+Last Updated: 2026-10-02
+ 
+ 
+ 
+🎯 ภาพรวม
+ 
+คู่มือนี้อธิบายวิธี ดึงข้อมูล ส่งออก และจัดการ CodeQL alerts จาก GitHub โดยใช้ GitHub CLI ( gh api ) และ REST API โดยตรง เหมาะสำหรับ:
+ 
+- รายงานความปลอดภัยอัตโนมัติ
+- ส่งออกข้อมูลไปวิเคราะห์ต่อ (Excel, BI)
+- บูรณาการเข้ากับระบบ DevSecOps
+ 
+ 
+ 
+🔑 ข้อกำหนดเบื้องต้น
+ 
+สิ่งที่ต้องมี
+ 
+- ✅ GitHub CLI ติดตั้งและล็อกอินแล้ว ( gh auth status )
+- ✅ GitHub Advanced Security (GHAS) เปิดใช้งานที่ repository
+- ✅ สิทธิ์:  repo:security_events  หรือ  write  ใน repo
+- ✅ CodeQL Analysis ทำงานแล้วใน repo
+ 
+ตรวจสอบสิทธิ์
+ 
+bash  
+gh auth status
+# ต้องเห็น: ✓ Logged in to github.com as YOUR_USERNAME
+ 
+ 
+ 
+ 
+📡 Endpoint หลักที่ใช้
+ 
+การทำงาน Endpoint 
+ดึงรายการทั้งหมด  GET /repos/{owner}/{repo}/code-scanning/alerts  
+ดึงรายละเอียดรายการ  GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}  
+อัปเดตสถานะ  PATCH /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}  
+ดึงรายการ analysis  GET /repos/{owner}/{repo}/code-scanning/analyses  
+ดึง SARIF ผลลัพธ์  GET /repos/{owner}/{repo}/code-scanning/sarifs/{sarif_id}  
+ 
+เอกสารทางการ: REST API endpoints for code scanning 
+ 
+ 
+ 
+🚀 คำสั่งพื้นฐาน —  gh api 
+ 
+1. ดึงรายการ Alerts ทั้งหมด
+ 
+bash  
+# รูปแบบทั่วไป
+gh api repos/{เจ้าของ}/{ชื่อ-repo}/code-scanning/alerts
+
+# ตัวอย่างจริง
+gh api repos/acme/backend-api/code-scanning/alerts
+ 
+ 
+2. กรองตามเงื่อนไข
+ 
+bash  
+# เฉพาะ alerts ที่ยังเปิดอยู่
+gh api repos/acme/backend-api/code-scanning/alerts \
+  -f state=open
+
+# เฉพาะระดับความรุนแรงสูงขึ้น
+gh api repos/acme/backend-api/code-scanning/alerts \
+  -f state=open \
+  -f severity=critical,high
+
+# เฉพาะผลจาก CodeQL เท่านั้น + เรียงล่าสุดก่อน
+gh api repos/acme/backend-api/code-scanning/alerts \
+  -f tool_name=CodeQL \
+  -f sort=updated \
+  -f direction=desc
+
+# เฉพาะ branch ที่ระบุ
+gh api repos/acme/backend-api/code-scanning/alerts \
+  -f ref=refs/heads/main
+ 
+ 
+3. ดึงรายละเอียด Alert รายการ
+ 
+bash  
+# ดูข้อมูลเต็มของ alert หมายเลข 42
+gh api repos/acme/backend-api/code-scanning/alerts/42
+ 
+ 
+4. อัปเดตสถานะ — ปิด/ยกเลิก
+ 
+bash  
+# ปิดว่าแก้ไขแล้ว
+gh api repos/acme/backend-api/code-scanning/alerts/42 \
+  -X PATCH \
+  -f state=fixed
+
+# ยกเลิกว่าไม่เกี่ยวข้อง
+gh api repos/acme/backend-api/code-scanning/alerts/42 \
+  -X PATCH \
+  -f state=dismissed \
+  -f dismissed_reason="false positive" \
+  -f dismissed_comment="ตรวจสอบแล้ว ไม่เป็นอันตราย — ความเหตุผลที่นี่"
+ 
+ 
+5. ดึงประวัติ Analysis
+ 
+bash  
+gh api repos/acme/backend-api/code-scanning/analyses \
+  -f tool_name=CodeQL \
+  -f per_page=10
+ 
+ 
+ 
+ 
+📂 ส่งออกข้อมูล — JSON / CSV
+ 
+ส่งออกเป็น JSON
+ 
+bash  
+# บันทึกลงไฟล์
+gh api repos/acme/backend-api/code-scanning/alerts \
+  -f state=open \
+  > codeql-alerts-$(date +%Y%m%d).json
+
+# ดูสรุปด้วย jq
+cat codeql-alerts-*.json | jq '.[] | {number, state, severity, rule:.rule.name}'
+ 
+ 
+ส่งออกเป็น CSV (พร้อมแปลงฟิลด์)
+ 
+bash  
+#!/usr/bin/env bash
+# export-codeql-alerts.sh
+
+OWNER="acme"
+REPO="backend-api"
+OUTPUT="codeql-alerts-$(date +%Y%m%d).csv"
+
+echo "Number,Severity,State,Rule,File,Line,URL" > "$OUTPUT"
+
+gh api repos/$OWNER/$REPO/code-scanning/alerts \
+  --paginate \
+  -f per_page=100 \
+  | jq -r '.[] | [
+    .number,
+    .severity,
+    .state,
+    .rule.name,
+    .most_recent_instance.location.file,
+    .most_recent_instance.location.start_line,
+    .html_url
+  ] | @csv' >> "$OUTPUT"
+
+echo "✅ ส่งออกเสร็จสิ้น: $OUTPUT"
+ 
+ 
+bash  
+# รันสคริปต์
+chmod +x export-codeql-alerts.sh
+./export-codeql-alerts.sh
+ 
+ 
+ตัวอย่างผลลัพธ์ CSV
+ 
+csv  
+Number,Severity,State,Rule,File,Line,URL
+42,high,open,sql-injection,src/db/query.js,127,https://github.com/acme/backend-api/security/code-scanning/42
+15,medium,open,unchecked-send,src/server/response.js,89,https://github.com/acme/backend-api/security/code-scanning/15
+ 
+ 
+ 
+ 
+🔄 จัดการหน้า (Pagination)
+ 
+เมื่อมีข้อมูลมากกว่า 30 รายการ:
+ 
+bash  
+# วิธีที่ 1 — ให้ gh api จัดการเองด้วย --paginate
+gh api repos/acme/backend-api/code-scanning/alerts \
+  --paginate \
+  -f per_page=100
+
+# วิธีที่ 2 — แบ่งหน้าด้วยตัวเอง
+for page in {1..5}; do
+  echo "📄 ดึงหน้าที่ $page"
+  gh api repos/acme/backend-api/code-scanning/alerts \
+    -f page=$page \
+    -f per_page=100
+done
+ 
+ 
+ 
+ 
+📊 ฟิลด์สำคัญใน Response
+ 
+ฟิลด์ ความหมาย 
+ number  หมายเลขอ้างอิง Alert 
+ state   open  /  closed  /  dismissed  /  fixed  
+ severity   critical  /  high  /  medium  /  low  /  warning  /  note  /  error [__LINK_ICON] 
+ rule.name  ชื่อกฎที่ตรวจพบ 
+ rule.description  คำอธิบายปัญหา 
+ most_recent_instance.location  ตำแหน่งไฟล์และบรรทัด 
+ html_url  ลิงก์ไปหน้า GitHub โดยตรง 
+ tool.name  ชื่อเครื่องมือ ( CodeQL  หรืออื่นๆ) 
+ created_at  /  updated_at  เวลาที่ตรวจพบ/แก้ไขล่าสุด 
+ 
+ 
+ 
+⚠️ ข้อควรระวัง & ขีดจำกัด
+ 
+รายการ ค่าขีดจำกัด 
+Rate Limit (PAT) 5,000 ครั้ง/ชม. 
+Rate Limit (GitHub App) 15,000 ครั้ง/ชม. 
+จำนวนต่อหน้า สูงสุด 100 รายการ/หน้า 
+ต้องเปิด GHAS repo ต้องเปิดใช้งาน GitHub Advanced Security ก่อนถึงจะเข้าถึงได้[__LINK_ICON] 
+สิทธิ์ขั้นต่ำ  security_events:read  
+ 
+ตรวจสอบ Rate Limit
+ 
+bash  
+gh api rate_limit
+ 
+ 
+ 
+ 
+🤖 นำไปใช้ใน CI/CD (GitHub Actions)
+ 
+yaml  
+name: Export CodeQL Alerts
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # ทุกวันจันทร์ 9 โมงเช้า
+  workflow_dispatch:      # สามารถสั่งรันด้วยตนเองได้
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: ดึงข้อมูลและส่งออก
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # ติดตั้ง GitHub CLI
+          sudo apt install gh
+          
+          # ส่งออกเป็น JSON
+          gh api repos/${{ github.repository }}/code-scanning/alerts \
+            --paginate \
+            -f state=open \
+            -f per_page=100 \
+            > codeql-alerts-latest.json
+          
+          # แปลงเป็น CSV
+          echo "Number,Severity,Rule,File,URL" > report.csv
+          cat codeql-alerts-latest.json | jq -r '.[] | [
+            .number,.severity,.rule.name,
+            .most_recent_instance.location.file,.html_url
+          ] | @csv' >> report.csv
+          
+      - name: อัปโหลดไฟล์รายงาน
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-report
+          path: |
+            codeql-alerts-latest.json
+            report.csv
+ 
+ 
+ 
+ 
+📋 คู่มือฉบับย่อ — Cheat Sheet
+ 
+สิ่งที่ต้องการ คำสั่ง 
+ดูทั้งหมด  gh api repos/OWNER/REPO/code-scanning/alerts  
+ดูเฉพาะที่เปิด  -f state=open  
+ดูเฉพาะ CodeQL  -f tool_name=CodeQL  
+ดูระดับสูง  -f severity=critical,high  
+ดูรายละเอียด  gh api repos/OWNER/REPO/code-scanning/alerts/42  
+ปิด alert  -X PATCH -f state=fixed  
+ยกเลิก alert  -X PATCH -f state=dismissed -f dismissed_reason="..."  
+ส่งออก JSON  > alerts.json  
+ส่งออก CSV  | jq -r ... > alerts.csv  
+ดึงทุกหน้า  --paginate  
+ 
+ 
+ 
+🔗 อ้างอิง
+ 
+- REST API — Code Scanning (ทางการ) 
+- CodeQL Documentation
+- GitHub CLI —  gh api  Reference
+ 
+ 
+ 
+ต้องการเพิ่มส่วนไหนหรือปรับแต่งสคริปต์ให้ตรงกับรูปแบบรายงานของทีมบอกได้เลยครับ 🙏
