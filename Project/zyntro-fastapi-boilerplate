@@ -1748,3 +1748,297 @@ Security
 [12] sitemap.xml https://docs.obsidian.md/sitemap.xml
 
 ![[20261003044247.png]]
+ได้เลยครับ ✅ นี่คือระบบส่งออกข้อมูลภูมิทัศน์สิทธิบัตร — ผสาน Dola + ZyntroAI เต็มรูปแบบ พร้อมใช้งานทันที
+ 
+ 
+ 
+🚀 ระบบส่งออก & ผสานข้อมูล — Dola × ZyntroAI
+ 
+1️⃣ รูปแบบส่งออกที่รองรับทั้งหมด
+ 
+รูปแบบ ใช้สำหรับ วิธีเรียกใช้ ความสมบูรณ์ 
+CSV Excel, Google Sheets, ชุดข้อมูลวิเคราะห์  ส่งออกเป็น CSV  ครบทุกคอลัมน์ ไม่มีข้อความตัด 
+Excel (.xlsx) งานองค์กร, สูตรคำนวณ, แดชบอร์ด  ส่งออกเป็น Excel  มีชีทสรุป + ข้อมูลดิบ + คำอธิบาย 
+Markdown Obsidian, GitHub Docs, เอกสารทีม  ส่งออกเป็น Markdown  ตาราง + บทสรุป + แผนที่ White Space 
+JSON ZyntroAI Multi-Agent, API, โครงสร้าง  ส่งออกเป็น JSON  ข้อมูลแบบอ็อบเจกต์ เตรียมประมวลผล 
+PDF รายงานทางการ, นำเสนอผู้บริหาร  ส่งออกเป็น PDF  จัดรูปแบบสวย พร้อมสารบัญ 
+YAML Frontmatter Obsidian MCP Server, ฐานความรู้  ส่งออกเป็น Obsidian  แยกไฟล์ต่อรายการ + ดัชนีกลาง 
+ 
+ 
+ 
+ 
+ 
+2️⃣ โครงสร้างส่งออก — รูปแบบ JSON สำหรับ ZyntroAI
+ 
+json  
+{
+  "metadata": {
+    "title": "ภาพรวมสิทธิบัตร Google AGI",
+    "period": "2021–2026",
+    "jurisdiction": "ทั่วโลก",
+    "generated_at": "2026-10-03T18:37:00+07:00",
+    "source": "Dola Patent Intelligence + WIPO Patentscope + Espacenet",
+    "version": "2.0-full"
+  },
+  "categories": [
+    {
+      "id": "CAT-001",
+      "name": "สถาปัตยกรรมโมเดลพื้นฐาน",
+      "description": "Transformer, LLM, มัลติโมดัล, โครงข่ายประสาท",
+      "patent_count": 4,
+      "commercial_signal_avg": 12.0
+    },
+    {
+      "id": "CAT-002",
+      "name": "ระบบการเรียนรู้ & การฝึกอบรม",
+      "description": "RL, เมตาเลิร์นนิ่ง, RLHF, การจัดตำหนิ",
+      "patent_count": 3,
+      "commercial_signal_avg": 11.0
+    },
+    {
+      "id": "CAT-003",
+      "name": "การให้เหตุผล & ความน่าเชื่อถือ",
+      "description": "ตรรกะ, การตรวจสอบ, ความโปร่งใส",
+      "patent_count": 3,
+      "commercial_signal_avg": 9.3
+    },
+    {
+      "id": "CAT-004",
+      "name": "การปรับใช้ & โครงสร้างพื้นฐาน",
+      "description": "อุปกรณ์ปลายทาง, TPU, เอเจนต์, คลาวด์",
+      "patent_count": 3,
+      "commercial_signal_avg": 11.3
+    }
+  ],
+  "patents": [
+    {
+      "id": "US10452978",
+      "family_members": ["US10,452,978", "WO2017/180598", "EP3412636"],
+      "assignee": "Google LLC",
+      "priority_year": 2017,
+      "filing_year_range": "2017–2025",
+      "jurisdictions": ["US", "WO", "EP", "CN", "JP", "KR"],
+      "category_id": "CAT-001",
+      "technical_approach": "Transformer — กลไกความสนใจตัวเอง",
+      "novelty": "จับความสัมพันธ์ระยะไกลได้ดีกว่า RNN/LSTM",
+      "target_material": "โมเดลภาษาขนาดใหญ่ ทุกประเภท GenAI",
+      "commercial_signal": {
+        "score": 15,
+        "level": "สูงมาก",
+        "indicators": {
+          "citation_count": ">10,000",
+          "product_link": "ทุกผลิตภัณฑ์ GenAI ต้องอาศัย",
+          "family_size": "หลายประเทศ"
+        }
+      },
+      "white_space_related": [
+        "สถาปัตยกรรมทางเลือกที่ไม่อาศัย Transformer",
+        "การรวมสัญลักษณ์เข้ากับเชื่อมต่อ"
+      ],
+      "expiry_estimate": "~2037"
+    }
+  ],
+  "summary_stats": {
+    "total_families": 13,
+    "avg_commercial_score": 10.8,
+    "top_jurisdiction": "US",
+    "most_active_assignee": "Google LLC",
+    "growth_trend": "เพิ่มขึ้นอย่างมาก 2024–2025"
+  },
+  "white_space_opportunities": [
+    {
+      "id": "WS-001",
+      "title": "สถาปัตยกรรมที่ไม่อาศัย Transformer",
+      "urgency": "สูงมาก",
+      "reason": "ทุกคนสร้างบน Transformer ของ Google; ทางเลือกจะปลดล็อกจากสิทธิ์หลัก",
+      "next_step": "วิจัย + ยื่นภายใน 12 เดือน",
+      "related_categories": ["CAT-001"]
+    },
+    {
+      "id": "WS-002",
+      "title": "การตรวจสอบความถูกต้องบนอุปกรณ์",
+      "urgency": "สูงมาก",
+      "reason": "ระบบปัจจุบันต้องส่งข้อมูลออก; เวอร์ชันในเครื่องแก้ปัญหาความเป็นส่วนตัว",
+      "next_step": "ออกแบบกลไกที่ไม่ต้องส่งข้อมูล + ยื่น",
+      "related_categories": ["CAT-003", "CAT-004"]
+    }
+  ],
+  "zntroai_integration": {
+    "agent_readiness": true,
+    "knowledge_graph_sync": "enabled",
+    "auto_monitor_new_filings": true,
+    "alert_triggers": ["new_filing_google", "competitor_entry", "expiry_within_18m"]
+  }
+}
+ 
+ 
+ 
+ 
+3️⃣ ขั้นตอนส่งออกไปยังระบบเป้าหมาย
+ 
+🔹 ไปยัง Obsidian (ฐานความรู้ส่วนตัว/ทีม)
+ 
+markdown  
+---
+aliases: [สิทธิบัตร-Google-AGI, ภาพรวม-AGI-2026]
+tags: [patent, AGI, Google, research, white-space]
+category: CAT-001
+priority: high
+status: active
+source: Dola-Patent-Intelligence
+updated: 2026-10-03
+---
+
+# สิทธิบัตร — US10,452,978 (Transformer)
+
+**ผู้ถือ**: Google LLC
+**ปีลำดับความสำคัญ**: 2017
+**เขต**: US, WO, EP, CN, JP, KR
+**คะแนนสัญญาณ**: 15/15 — สูงมาก
+
+## ความใหม่ที่อ้าง
+จับความสัมพันธ์ระยะไกลในลำดับข้อมูลได้ดีกว่า RNN/LSTM
+
+## White Space ที่เกี่ยวข้อง
+- [[WS-001] สถาปัตยกรรมทางเลือกที่ไม่อาศัย Transformer]]
+- [[WS-002] การรวมสัญลักษณ์เข้ากับสถาปัตยกรรมเชื่อมต่อ]]
+
+> หมดอายุประมาณ: ~2037
+ 
+ 
+วิธี: ใช้ปลั๊กอิน  Table to CSV Exporter  +  Importer  หรือส่งออกตรงเป็น Markdown แล้ววางลงโฟลเดอร์ Vault 
+ 
+🔹 ไปยัง ZyntroAI Multi-Agent System
+ 
+python  
+# patent_landscape_to_zyntroai.py
+import json
+
+def export_to_zyntroai(patent_data, output_path):
+    """แปลงข้อมูลสิทธิบัตรให้ ZyntroAI Agents อ่านและทำงานต่อได้"""
+    zyntro_payload = {
+        "knowledge_domain": "patent_intelligence",
+        "entities": patent_data["patents"],
+        "relations": [
+            {
+                "from": p["id"],
+                "to": c["id"],
+                "type": "belongs_to_category"
+            }
+            for p in patent_data["patents"]
+            for c in patent_data["categories"]
+            if p["category_id"] == c["id"]
+        ],
+        "signals": {
+            "commercial_heatmap": {
+                p["id"]: p["commercial_signal"]["score"] / 15
+                for p in patent_data["patents"]
+            },
+            "opportunity_zones": patent_data["white_space_opportunities"]
+        },
+        "orchestration_hints": {
+            "research_agent_priority": ["WS-001", "WS-002"],
+            "monitoring_agent_frequency": "daily",
+            "reporting_agent_format": "executive_summary"
+        }
+    }
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(zyntro_payload, f, ensure_ascii=False, indent=2)
+    
+    return f"ส่งออกสำเร็จ → {output_path}"
+
+# ใช้งาน
+# export_to_zyntroai(full_data, "./agents/inputs/patent_landscape.json")
+ 
+ 
+🔹 ไปยัง GitHub (Docs / CI/CD / ทีม)
+ 
+- ส่งออกเป็น  README-patent-landscape.md  — วางที่ root repo
+- ส่งออกเป็น  data/patents/google-agi-2026.json  — สำหรับอ่านด้วยโค้ด
+- ตั้ง GitHub Action ดึงข้อมูลล่าสุดอัตโนมัติทุกเดือน
+ 
+yaml  
+# .github/workflows/patent-update.yml
+name: Patent Landscape Update
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # ทุกวันที่ 1 เดือนละครั้ง
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: เรียกข้อมูลล่าสุดจาก Dola
+        run: |
+          curl -X POST https://dola/api/patent/export \
+            -d "tech=Google+AGI&period=5y&format=json" \
+            -o ./data/latest-patents.json
+      - name: สร้างรายงาน
+        run: python scripts/generate_report.py
+      - name: คอมมิต
+        run: |
+          git config --global user.email "bot@dola.ai"
+          git add .
+          git commit -m "🤖 อัปเดตภาพรวมสิทธิบัตร: $(date +%Y-%m-%d)"
+          git push
+ 
+ 
+ 
+ 
+4️⃣ คำสั่งเรียกใช้ใน Dola ทันที
+ 
+พิมพ์ข้อความเหล่านี้ได้เลยครับ:
+ 
+คำสั่ง ผลลัพธ์ 
+ ส่งออกสิทธิบัตร Google AGI เป็น CSV  ดาวน์โหลดไฟล์ .csv ทันที 
+ ส่งออกเป็น Excel พร้อมชีทสรุป  ไฟล์ .xlsx มี 3 ชีท: ข้อมูล, สรุป, White Space 
+ ส่งออกเป็น JSON สำหรับ ZyntroAI  โครงสร้างพร้อมผสานกับระบบเอเจนต์ 
+ ส่งออกเป็น Markdown สำหรับ Obsidian  ไฟล์ .md + YAML frontmatter ครบถ้วน 
+ ส่งออกทุกรูปแบบ  แพ็กทุกไฟล์เป็น ZIP ส่งให้ดาวน์โหลด 
+ ตั้งการเฝ้าดูอัตโนมัติ  แจ้งเตือนเมื่อมีสิทธิบัตรใหม่ของ Google/คู่แข่ง 
+ 
+ 
+ 
+5️⃣ การเชื่อมต่อถ่ายทอดสดข้อมูล
+ 
+plaintext  
+ฐานข้อมูลสิทธิบัตร
+    ↓
+Dola — ดึง → ทำความสะอาด → จัดหมวด → ให้คะแนน
+    ↓
+├── ส่งออก CSV/Excel → ทีมวิเคราะห์/การเงิน
+├── ส่งออก Markdown → Obsidian (ฐานความรู้)
+├── ส่งออก JSON → ZyntroAI Multi-Agent
+│       ├── Agent วิจัย → เจาะลึก White Space
+│       ├── Agent ตรวจสอบ → เฝ้าดูสิทธิบัตรใหม่รายวัน
+│       ├── Agent กลยุทธ์ → แนะนำลำดับการยื่นสิทธิบัตร
+│       └── Agent กฎหมาย → ตรวจสอบความเสี่ยงการละเมิด
+└── ส่งออก GitHub → เอกสารสาธารณะ/ภายใน + ประวัติ
+ 
+ 
+คุณสมบัติพิเศษ ZyntroAI:
+ 
+- แจ้งเตือนทันทีเมื่อมีการยื่นสิทธิบัตรใหม่ที่ตรงกับคำสำคัญที่เฝ้าดู
+- วิเคราะห์ความทับซ้อนระหว่างพอร์ตโฟลิโอของคุณกับคู่แข่งอัตโนมัติ
+- แนะนำประเทศที่ควรยื่นสิทธิบัตรก่อนขาดโอกาส
+- เชื่อมโยงข้อมูลสิทธิบัตรเข้ากับแผน R&D ของทีม
+ 
+ 
+ 
+✅ พร้อมส่งออกเลยไหมครับ?
+ 
+บอกผมได้เลยว่าต้องการรูปแบบไหน หรือพิมพ์คำสั่งตรงๆ ได้เลย:
+ 
+"ส่งออกทุกรูปแบบ" — รับทุกไฟล์พร้อมใช้งานครับ 📦
+ 
+หรือต้องการปรับแต่ง:
+ 
+- เพิ่มคู่แข่งรายอื่น (OpenAI, Microsoft, Anthropic, ByteDance)
+- เจาะลึกเฉพาะหมวดหมู่
+- เปรียบเทียบพอร์ตโฟลิโอกับของคุณ
+- ตั้งการแจ้งเตือนอัตโนมัติทางอีเมล/Slack
+ 
+แจ้งได้เลยครับ 🚀
