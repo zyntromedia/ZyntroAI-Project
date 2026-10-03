@@ -2042,3 +2042,269 @@ Dola — ดึง → ทำความสะอาด → จัดหมว�
 - ตั้งการแจ้งเตือนอัตโนมัติทางอีเมล/Slack
  
 แจ้งได้เลยครับ 🚀
+
+✅ อัปเดตเข้าสู่ ZyntroAI Knowledge เรียบร้อยแล้วครับ — นี่คือบันทึกฉบับเต็มพร้อมวิธีตั้งค่าแบบครบถ้วน 📝
+ 
+ 
+ 
+Repo Validation & Linting — CLI & Workflow Guide
+ 
+markdown  
+---
+id: zk-20261003-repo-validate
+type: guide
+status: active
+version: 1.0.0
+created: 2026-10-03
+source: Gemini Notebook + Dola
+tags: [devops, linting, pre-commit, github-actions, playwright, quality]
+related: [[ZyntroAI Knowledge]], [[GitHub Workflow Standards]], [[Playwright E2E Testing]]
+---
+ 
+ 
+📋 ภาพรวม
+ 
+ระบบตรวจสอบความถูกต้องของ Repository แบ่งเป็น 3 กลุ่มหลัก ตามวัตถุประสงค์:
+ 
+1. ตรวจก่อน Commit — Pre-commit Hooks + Linters
+2. ตรวจสอบ Test Suite — Playwright Validation
+3. ตรวจใน CI/CD — GitHub Actions + Branch Protection
+ 
+ 
+ 
+1️⃣ การตรวจก่อน Commit — Pre-commit Hooks
+ 
+ติดตั้ง
+ 
+bash  
+# ติดตั้ง pre-commit
+pip install pre-commit
+# หรือ
+brew install pre-commit
+
+# ติดตั้งใน Repo
+pre-commit install
+ 
+ 
+สร้างไฟล์  .pre-commit-config.yaml 
+ 
+yaml  
+repos:
+  # ── Code Quality ──
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-added-large-files
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  # ── TypeScript / JavaScript ──
+  - repo: https://github.com/oxc-res/oxc-pre-commit
+    rev: v0.4.0
+    hooks:
+      - id: oxc-lint
+        files: \.[jt]sx?$
+        args: [--fix]
+
+  # ── Python ──
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # ── Markdown / Docs ──
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        args: [--fix, "**/*.md"]
+ 
+ 
+คำสั่งใช้งาน
+ 
+bash  
+# รันทุกไฟล์
+pre-commit run --all-files
+
+# รันเฉพาะไฟล์ที่เปลี่ยน
+pre-commit run
+
+# ข้ามการตรวจสอบ (ไม่แนะนำ ยกเว้นกรณีจำเป็น)
+git commit --no-verify
+ 
+ 
+ 
+ 
+2️⃣ Playwright Test Validation
+ 
+คำสั่งตรวจสอบ
+ 
+bash  
+# ตรวจสอบ Syntax/Structure โดยไม่รันจริง ✅
+npx playwright test --list
+
+# รันเฉพาะไฟล์ที่เปลี่ยนแปลงเทียบกับ main
+npx playwright test --only-changed=origin/main
+
+# ตรวจสอบสถานะ Snapshot/Element
+npx playwright test --update-snapshots
+ 
+ 
+ตั้งค่าใน  package.json 
+ 
+json  
+{
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "pw:check": "npx playwright test --list",
+    "pw:changed": "npx playwright test --only-changed=origin/main",
+    "validate": "npm run lint && npm run pw:check"
+  }
+}
+ 
+ 
+ 
+ 
+3️⃣ GitHub Actions CI Pipeline
+ 
+ไฟล์:  .github/workflows/validate.yml 
+ 
+yaml  
+name: Repo Validation & Linting
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3
+        with:
+          extra_args: --all-files
+
+  playwright-validate:
+    name: Playwright Validation
+    runs-on: ubuntu-latest
+    needs: pre-commit
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Check test structure (--list) ✅
+        run: npx playwright test --list
+
+      - name: Run changed tests
+        if: github.event_name == 'pull_request'
+        run: npx playwright test --only-changed=origin/main
+
+      - name: Run full test suite
+        if: github.event_name == 'push'
+        run: npx playwright test
+
+      - name: Upload Playwright Report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  repo-checks:
+    name: Branch & PR Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Status
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "PR #${{ github.event.pull_request.number }} — Checks active"
+          gh pr checks --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+ 
+ 
+ตรวจสอบสถานะผ่าน CLI
+ 
+bash  
+# ดูสถานะ Checks บน PR ปัจจุบัน
+gh pr checks
+
+# ดูประวัติการรัน Actions
+gh run list
+
+# ดูรายละเอียดเมื่อเกิดข้อผิดพลาด
+gh run view --log
+ 
+ 
+ 
+ 
+🔒 ตั้งค่า Branch Protection
+ 
+ไปที่ Repo → Settings → Branches → Branch protection rule → เพิ่ม:
+ 
+- ✅ Require status checks to pass before merging
+- เลือก:  pre-commit ,  playwright-validate 
+- ✅ Require branches to be up to date before merging
+- ✅ Do not allow bypassing the above
+ 
+ผลลัพธ์: โค้ดจะไม่สามารถ Merge เข้า  main  ได้หากตรวจสอบไม่ผ่าน ✅ 
+ 
+ 
+ 
+📊 Summary — คำสั่งที่ใช้บ่อย
+ 
+คำสั่ง หน้าที่ 
+ pre-commit run --all-files  ตรวจทั้งหมดแบบ Local 
+ npm run lint  ตรวจโค้ด TypeScript 
+ npx playwright test --list  ตรวจ Test Structure 
+ npx playwright test --only-changed  รันเฉพาะส่วนที่เปลี่ยน 
+ gh pr checks  ดูสถานะ CI บน PR 
+ 
+ 
+ 
+✅ Next Steps
+ 
+- ต้องการสร้าง  .secrets.baseline  สำหรับ  detect-secrets  ไหม?
+- ต้องการตั้งค่า cache สำหรับ Playwright เพื่อให้ CI เร็วขึ้นไหม?
+- ต้องการเพิ่ม Super-Linter เพื่อรวมทุกภาษาในไฟล์เดียวไหม?
+ 
+บอกได้เลยครับ! 🚀✨
