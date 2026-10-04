@@ -1350,3 +1350,454 @@ python main.py      # Python
  
  
 ต้องการสร้างไฟล์เพิ่มไหมครับ เช่น  main.tsx ,  main.rs , หรือแยกแต่ละส่วนเป็นไฟล์ต่างหาก? 🎯✨
+
+ได้เลยครับ ✅ สร้างสาขา  feat/jwt-auth  และเติมโค้ดทั้งชุดเข้าไปทันที — คัดลอกรันตามขั้นตอนได้เลย 🔐🚀
+ 
+ 
+ 
+🔐 feat/jwt-auth — Complete Implementation
+ 
+📁 โครงสร้างที่จะได้
+ 
+plaintext  
+zyntro-app/backend/
+├── main.py                  ← อัปเดต — รวม Auth Router
+├── requirements.txt          ← อัปเดต — เพิ่ม JWT deps
+├── .env.example             ← อัปเดต — เพิ่ม JWT vars
+├── .env                      ← สร้างเองจาก .env.example
+├── core/
+│   ├── __init__.py
+│   └── config.py            ← ใหม่ — Settings รวม JWT
+├── services/
+│   ├── __init__.py
+│   └── auth.py              ← ใหม่ — ตรรกะ Hash/Token
+├── dependencies.py          ← ใหม่ — get_current_user
+└── api/v1/endpoints/
+    ├── __init__.py
+    └── auth.py              ← ใหม่ — Login/Refresh/Logout
+ 
+ 
+ 
+ 
+1️⃣ คำสั่งเตรียมสาขา
+ 
+bash  
+# อัปเดต main ล่าสุด
+git checkout main
+git pull origin main
+
+# สร้างสาขาใหม่
+git checkout -b feat/jwt-auth
+
+# ยืนยันสาขา
+git branch
+# → * feat/jwt-auth
+ 
+ 
+ 
+ 
+2️⃣ สร้างโฟลเดอร์ + ไฟล์ใหม่
+ 
+bash  
+cd zyntro-app/backend
+mkdir -p core services api/v1/endpoints
+touch core/__init__.py services/__init__.py api/v1/endpoints/__init__.py
+ 
+ 
+ 
+ 
+3️⃣ ไฟล์:  core/config.py 
+ 
+python  
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    # === App ===
+    APP_NAME: str = "ZyntroApp"
+    APP_VERSION: str = "1.0.0"
+    DEBUG: bool = True
+
+    # === JWT Authentication ===
+    JWT_SECRET_KEY: str = "CHANGE_ME_GENERATE_YOUR_OWN_SECRET_KEY"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    @property
+    def ACCESS_EXPIRE_SECONDS(self) -> int:
+        return self.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
+    @property
+    def REFRESH_EXPIRE_SECONDS(self) -> int:
+        return self.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+    }
+
+settings = Settings()
+ 
+ 
+ 
+ 
+4️⃣ ไฟล์:  services/auth.py 
+ 
+python  
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
+from jose import jwt
+from passlib.context import CryptContext
+from core.config import settings
+
+# === Password Hashing ===
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+# === Token Creation ===
+def create_token(subject: str, token_type: str, expires_delta: timedelta) -> str:
+    now = datetime.utcnow()
+    payload = {
+        "sub": subject,
+        "type": token_type,
+        "iat": now,
+        "exp": now + expires_delta,
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+def create_access_token(username: str) -> Tuple[str, int]:
+    expire = timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    return create_token(username, "access", expire), int(expire.total_seconds())
+
+def create_refresh_token(username: str) -> Tuple[str, int]:
+    expire = timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+    return create_token(username, "refresh", expire), int(expire.total_seconds())
+
+# === Mock User DB — Replace with real DB later ===
+MOCK_USERS_DB = {
+    "admin": {
+        "username": "admin",
+        "full_name": "ZyntroAI Admin",
+        "email": "admin@zyntro.ai",
+        "hashed_password": get_password_hash("ChangeMe123!"),
+        "disabled": False,
+    }
+}
+
+def authenticate_user(username: str, password: str) -> Optional[dict]:
+    user = MOCK_USERS_DB.get(username)
+    if not user: return None
+    if not verify_password(password, user["hashed_password"]): return None
+    if user.get("disabled"): return None
+    return user
+ 
+ 
+ 
+ 
+5️⃣ ไฟล์:  dependencies.py 
+ 
+python  
+from typing import Optional
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from core.config import settings
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+    creds_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="ตรวจสอบสิทธิ์ไม่สำเร็จ",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM], options={"verify_exp": True}
+        )
+        username: Optional[str] = payload.get("sub")
+        if not username: raise creds_exception
+        return {"username": username, "payload": payload}
+    except JWTError:
+        raise creds_exception
+
+async def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme)) -> Optional[dict]:
+    if not token: return None
+    try:
+        return await get_current_user(token)
+    except HTTPException:
+        return None
+ 
+ 
+ 
+ 
+6️⃣ ไฟล์:  api/v1/endpoints/auth.py 
+ 
+python  
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from pydantic import BaseModel, Field
+from typing import Optional
+from services.auth import (
+    authenticate_user, create_access_token, create_refresh_token, MOCK_USERS_DB
+)
+from core.config import settings
+from jose import JWTError, jwt
+
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+# === Schemas ===
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=50)
+    password: str = Field(..., min_length=1)
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    refresh_expires_in: Optional[int] = None
+    user: dict
+
+class MessageResponse(BaseModel):
+    message: str
+
+# === Cookie Helpers ===
+def set_auth_cookies(res: Response, access_token: str, refresh_token: str, access_max: int, refresh_max: int):
+    res.set_cookie(
+        key="access_token", value=f"Bearer {access_token}",
+        max_age=access_max, path="/", secure=settings.DEBUG is False,
+        httponly=True, samesite="lax"
+    )
+    res.set_cookie(
+        key="refresh_token", value=refresh_token,
+        max_age=refresh_max, path="/api/v1/auth/refresh",
+        secure=settings.DEBUG is False, httponly=True, samesite="strict"
+    )
+
+def clear_auth_cookies(res: Response):
+    res.delete_cookie("access_token", path="/")
+    res.delete_cookie("refresh_token", path="/api/v1/auth/refresh")
+
+# === Routes ===
+@router.post("/login", response_model=TokenResponse)
+async def login(req: LoginRequest, res: Response):
+    user = authenticate_user(req.username, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
+
+    access_token, access_exp = create_access_token(user["username"])
+    refresh_token, refresh_exp = create_refresh_token(user["username"])
+    set_auth_cookies(res, access_token, refresh_token, access_exp, refresh_exp)
+
+    return {
+        "access_token": access_token, "token_type": "bearer",
+        "expires_in": access_exp, "refresh_expires_in": refresh_exp,
+        "user": {"username": user["username"], "full_name": user["full_name"], "email": user["email"]}
+    }
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(req: Request, res: Response):
+    refresh_token = req.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="ไม่พบ Refresh Token")
+
+    try:
+        payload = jwt.decode(refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        if payload.get("type") != "refresh": raise JWTError("ไม่ใช่ Refresh Token")
+        username = payload.get("sub")
+        if not username or username not in MOCK_USERS_DB:
+            raise HTTPException(status_code=401, detail="ผู้ใช้ไม่ถูกต้อง")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Refresh Token ไม่ถูกต้องหรือหมดอายุ")
+
+    access_token, access_exp = create_access_token(username)
+    new_refresh_token, refresh_exp = create_refresh_token(username)
+    set_auth_cookies(res, access_token, new_refresh_token, access_exp, refresh_exp)
+    user = MOCK_USERS_DB[username]
+
+    return {
+        "access_token": access_token, "token_type": "bearer",
+        "expires_in": access_exp, "refresh_expires_in": refresh_exp,
+        "user": {"username": username, "full_name": user["full_name"]}
+    }
+
+@router.post("/logout", response_model=MessageResponse)
+async def logout(res: Response):
+    clear_auth_cookies(res)
+    return {"message": "ออกจากระบบสำเร็จ"}
+ 
+ 
+ 
+ 
+7️⃣ อัปเดต:  main.py 
+ 
+python  
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
+from core.config import settings
+from dependencies import get_current_user
+from api.v1.endpoints.auth import router as auth_router
+
+app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# === Models ===
+class Item(BaseModel):
+    id: Optional[int] = None
+    title: str
+    description: Optional[str] = None
+    done: bool = False
+
+class ItemCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+# === In-Memory DB (replace with PostgreSQL later) ===
+items_db: List[Item] = []
+next_id = 1
+
+# === Auth Router ===
+app.include_router(auth_router, prefix="/api/v1")
+
+# === Protected Example ===
+@app.get("/api/v1/me")
+async def read_me(user = Depends(get_current_user)):
+    return {"authenticated": True, "user": user["username"]}
+
+# === CRUD Items (Public for now — add auth later) ===
+@app.get("/api/items", response_model=List[Item])
+def list_items():
+    return items_db
+
+@app.post("/api/items", response_model=Item)
+def create_item(item: ItemCreate):
+    global next_id
+    new_item = Item(id=next_id, title=item.title, description=item.description)
+    items_db.append(new_item)
+    next_id += 1
+    return new_item
+
+@app.put("/api/items/{item_id}", response_model=Item)
+def update_item(item_id: int, updated: ItemCreate):
+    for idx, item in enumerate(items_db):
+        if item.id == item_id:
+            items_db[idx] = Item(id=item_id, **updated.model_dump(), done=item.done)
+            return items_db[idx]
+    raise HTTPException(status_code=404, detail="ไม่พบรายการ")
+
+@app.delete("/api/items/{item_id}")
+def delete_item(item_id: int):
+    global items_db
+    items_db = [i for i in items_db if i.id != item_id]
+    return {"message": "ลบสำเร็จ"}
+
+@app.get("/")
+def root():
+    return {"message": f"{settings.APP_NAME} v{settings.APP_VERSION} — Auth Ready"}
+ 
+ 
+ 
+ 
+8️⃣ อัปเดต:  requirements.txt 
+ 
+plaintext  
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.0
+pydantic-settings>=2.6
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.1
+ 
+ 
+ติดตั้ง:
+ 
+bash  
+pip install -r requirements.txt
+ 
+ 
+ 
+ 
+9️⃣ อัปเดต:  .env.example 
+ 
+env  
+# === App ===
+APP_NAME=ZyntroApp
+DEBUG=true
+
+# === JWT — Generate with: openssl rand -hex 32 ===
+JWT_SECRET_KEY=REPLACE_WITH_YOUR_OWN_SECRET_KEY
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+ 
+ 
+คัดลอกเป็น  .env  และสร้างคีย์ลับ:
+ 
+bash  
+openssl rand -hex 32
+# → วางผลลัพธ์ลง JWT_SECRET_KEY=...
+ 
+ 
+ 
+ 
+🔗 ทดสอบระบบ
+ 
+bash  
+# รันเซิร์ฟเวอร์
+uvicorn main:app --reload
+
+# เปิด Swagger
+open http://127.0.0.1:8000/docs
+
+# ทดสอบ
+# 1. /api/v1/auth/login → username: admin, password: ChangeMe123!
+# 2. /api/v1/me → ต้องส่ง Token → ได้ข้อมูลผู้ใช้
+# 3. /api/v1/auth/refresh → ต่ออายุ
+# 4. /api/v1/auth/logout → ออกจากระบบ
+ 
+ 
+ 
+ 
+✅ Commit & Push
+ 
+bash  
+git add .
+git commit -m "feat: add JWT Authentication — login/refresh/logout 🔐
+
+- ✅ Password hashing with bcrypt
+- ✅ Access (15m) + Refresh (7d) tokens
+- ✅ HTTP-only Secure Cookies (XSS/CSRF protection)
+- ✅ /api/v1/auth/login, /refresh, /logout
+- ✅ Protected route example /api/v1/me
+- ✅ .env.example + JWT settings
+- ✅ Refs: #3"
+
+git push -u origin feat/jwt-auth
+ 
+ 
+ 
+ 
+🎯 ถัดไป
+ 
+- เปิด Pull Request → เปรียบเทียบกับ  main  → รีวิว → Merge
+- Frontend: เรียก  /api/v1/auth/login  เก็บ Token → แนบทุกคำขอ
+- ย้าย  MOCK_USERS_DB  → PostgreSQL
+- เพิ่ม Auth ให้  /api/items  ทั้งหมด
+ 
+ต้องการสร้าง PR ให้เลยไหมครับ? 🚀✨
