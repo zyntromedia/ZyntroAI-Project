@@ -1801,3 +1801,316 @@ git push -u origin feat/jwt-auth
 - เพิ่ม Auth ให้  /api/items  ทั้งหมด
  
 ต้องการสร้าง PR ให้เลยไหมครับ? 🚀✨
+
+ได้เลยครับ ✅ เพิ่ม scripts ครบชุด — ทั้ง Bash, Python, Makefile และสคริปต์จัดการ JWT/Environment พร้อมใช้งานทันที 📜🚀
+ 
+ 
+ 
+📂 scripts/ — ชุดคำสั่งอัตโนมัติ
+ 
+สร้างโฟลเดอร์:
+ 
+bash  
+cd zyntro-app/backend
+mkdir -p scripts
+ 
+ 
+ 
+ 
+1️⃣ scripts/setup.sh — ติดตั้งครั้งเดียวเสร็จ
+ 
+bash  
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🔧 ติดตั้งสภาพแวดล้อม ZyntroApp..."
+
+# ตรวจสอบ Python
+if ! command -v python3 &> /dev/null; then
+    echo "❌ ไม่พบ Python 3"
+    exit 1
+fi
+
+# สร้าง Virtual Environment
+if [ ! -d ".venv" ]; then
+    echo "📦 สร้าง .venv..."
+    python3 -m venv .venv
+fi
+
+# เปิดใช้งาน + ติดตั้ง
+echo "📦 ติดตั้งแพ็กเกจ..."
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# สร้าง .env ถ้ายังไม่มี
+if [ ! -f ".env" ]; then
+    echo "⚙️ สร้าง .env..."
+    cp .env.example .env
+    # สร้างคีย์ลับอัตโนมัติ
+    SECRET=$(openssl rand -hex 32)
+    sed -i.bak "s|REPLACE_WITH_YOUR_OWN_SECRET_KEY|$SECRET|" .env
+    rm -f .env.bak
+    echo "✅ สร้าง JWT_SECRET_KEY อัตโนมัติ"
+fi
+
+echo ""
+echo "✅ ติดตั้งเสร็จสิ้น!"
+echo "👉 รัน: source .venv/bin/activate && uvicorn main:app --reload"
+ 
+ 
+ 
+ 
+2️⃣ scripts/run.sh — รันเซิร์ฟเวอร์
+ 
+bash  
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+if [ ! -d ".venv" ]; then
+    echo "⚠️ ยังไม่ได้ติดตั้ง — รัน ./scripts/setup.sh ก่อน"
+    exit 1
+fi
+
+source .venv/bin/activate
+
+# โหลดตัวแปรจาก .env
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+echo "🚀 เริ่มทำงาน ZyntroApp..."
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+ 
+ 
+ 
+ 
+3️⃣ scripts/generate-secret.sh — สร้างคีย์ลับใหม่
+ 
+bash  
+#!/usr/bin/env bash
+set -euo pipefail
+
+SECRET=$(openssl rand -hex 32)
+echo "🔑 JWT_SECRET_KEY:"
+echo "$SECRET"
+echo ""
+echo "วางลงใน .env:"
+echo "JWT_SECRET_KEY=$SECRET"
+ 
+ 
+ 
+ 
+4️⃣ scripts/test-api.py — ทดสอบ API อัตโนมัติ
+ 
+python  
+#!/usr/bin/env python3
+"""
+ทดสอบ API ZyntroApp — Login → Token → Me → Logout
+รัน: python scripts/test-api.py
+"""
+
+import requests
+import json
+
+BASE_URL = "http://127.0.0.1:8000"
+
+def main():
+    print("🧪 เริ่มทดสอบ API...\n")
+
+    # 1. Login
+    print("1️⃣ ทดสอบ Login...")
+    r = requests.post(
+        f"{BASE_URL}/api/v1/auth/login",
+        json={"username": "admin", "password": "ChangeMe123!"}
+    )
+    if r.status_code != 200:
+        print(f"❌ Login ล้มเหลว: {r.status_code}")
+        return
+    data = r.json()
+    token = data["access_token"]
+    print(f"✅ Login สำเร็จ — Token: {token[:30]}...")
+
+    # 2. Me (ต้องมี Token)
+    print("\n2️⃣ ทดสอบสิทธิ์ /api/v1/me...")
+    r = requests.get(
+        f"{BASE_URL}/api/v1/me",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    if r.status_code != 200:
+        print(f"❌ สิทธิ์ไม่ถูกต้อง: {r.status_code}")
+        return
+    print(f"✅ ยืนยันตัวตน: {r.json()}")
+
+    # 3. Items
+    print("\n3️⃣ ทดสอบรายการ...")
+    r = requests.post(
+        f"{BASE_URL}/api/items",
+        json={"title": "ทดสอบจากสคริปต์", "description": "สร้างอัตโนมัติ"}
+    )
+    print(f"✅ สร้าง: {r.json()}")
+
+    # 4. Logout
+    print("\n4️⃣ ทดสอบ Logout...")
+    r = requests.post(f"{BASE_URL}/api/v1/auth/logout")
+    print(f"✅ {r.json()['message']}")
+
+    print("\n🎉 ทุกการทดสอบผ่าน!")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except requests.exceptions.ConnectionError:
+        print("❌ ไม่พบเซิร์ฟเวอร์ — รัน ./scripts/run.sh ก่อน")
+ 
+ 
+ 
+ 
+5️⃣ scripts/init-db.py — เตรียมฐานข้อมูล (สำหรับ PostgreSQL)
+ 
+python  
+#!/usr/bin/env python3
+"""
+เตรียมตารางฐานข้อมูล — ใช้เมื่อย้ายไป PostgreSQL
+รัน: python scripts/init-db.py
+"""
+
+import sys
+from pathlib import Path
+
+# เพิ่ม root เข้า path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    import psycopg2
+    print("✅ พบ psycopg2 — พร้อมเชื่อมต่อ PostgreSQL")
+except ImportError:
+    print("⚠️ ยังไม่ได้ติดตั้ง: pip install psycopg2-binary")
+    sys.exit(1)
+
+print("""
+📄 สร้างตารางที่จะใช้:
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    full_name TEXT,
+    email TEXT UNIQUE,
+    hashed_password TEXT NOT NULL,
+    disabled BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE items (
+    id SERIAL PRIMARY KEY,
+    owner_id INT REFERENCES users(id),
+    title TEXT NOT NULL,
+    description TEXT,
+    done BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_items_owner ON items(owner_id);
+""")
+ 
+ 
+ 
+ 
+6️⃣ Makefile — คำสั่งสั้นๆ ง่ายต่อการจำ
+ 
+makefile  
+.PHONY: install run test clean secret help
+
+# ค่าเริ่มต้น
+VENV = .venv
+PYTHON = $(VENV)/bin/python
+PIP = $(VENV)/bin/pip
+
+help: ## แสดงคำสั่งทั้งหมด
+	@echo "📋 คำสั่งใช้งาน ZyntroApp"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*##' Makefile | awk 'BEGIN {FS = ":.*##"}; {printf "  make %-12s %s\n", $$1, $$2}'
+	@echo ""
+
+install: ## ติดตั้งทุกอย่าง
+	./scripts/setup.sh
+
+run: ## รันเซิร์ฟเวอร์
+	./scripts/run.sh
+
+test: ## ทดสอบ API
+	$(PYTHON) scripts/test-api.py
+
+secret: ## สร้างคีย์ลับใหม่
+	./scripts/generate-secret.sh
+
+clean: ## ลบไฟล์ชั่วคราว
+	rm -rf $(VENV) __pycache__ .pytest_cache
+	find . -name "*.pyc" -delete
+
+check: ## ตรวจโค้ด
+	$(PIP) show ruff >/dev/null 2>&1 || $(PIP) install ruff
+	$(VENV)/bin/ruff check .
+
+.DEFAULT_GOAL = help
+ 
+ 
+ 
+ 
+7️⃣ ให้สิทธิ์รัน + Commit
+ 
+bash  
+# ให้สิทธิ์รัน
+chmod +x scripts/*.sh
+chmod +x scripts/*.py
+
+# ดูโครงสร้าง
+tree scripts/
+# หรือ ls -la scripts/
+
+# Commit
+git add scripts/ Makefile
+git commit -m "feat: add scripts & Makefile 📜
+
+- ✅ setup.sh — ติดตั้งอัตโนมัติ + สร้าง .env
+- ✅ run.sh — รันเซิร์ฟเวอร์
+- ✅ generate-secret.sh — สร้าง JWT Key
+- ✅ test-api.py — ทดสอบ Login/Token/Me/Logout
+- ✅ init-db.py — โครงสร้าง PostgreSQL
+- ✅ Makefile — คำสั่งสั้นๆ: make install/run/test/secret
+- Refs: #3"
+
+git push -u origin feat/jwt-auth
+ 
+ 
+ 
+ 
+✅ วิธีใช้งาน
+ 
+bash  
+# ติดตั้งครั้งแรก
+make install
+
+# รัน
+make run
+
+# เปิดอีกหน้าต่าง → ทดสอบ
+make test
+
+# สร้างคีย์ลับใหม่
+make secret
+
+# ตรวจโค้ด
+make check
+ 
+ 
+ 
+ 
+ต้องการเพิ่มอะไรอีกไหมครับ เช่น:
+ 
+- 🐳  scripts/docker-build.sh  — สร้างอิมเมจ
+- 📊  scripts/deploy-vercel.py  — อัปโหลดขึ้น Vercel
+- 🔒  scripts/rotate-secrets.sh  — หมุนเวียนคีย์ลับอัตโนมัติ 🎯✨
